@@ -80,7 +80,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Curtain.cpp" />
+    <ClCompile Include="cylinder.cpp" />
+    <ClCompile Include="disk.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="object.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Spring.cpp" />
+    <ClCompile Include="Square.cpp" />
+    <ClCompile Include="top.cpp" />
+    <ClCompile Include="Torus.cpp" />
+    <ClCompile Include="vertexattributes.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Curtain.h" />
+    <ClInclude Include="cylinder.h" />
+    <ClInclude Include="disk.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="object.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Spring.h" />
+    <ClInclude Include="Square.h" />
+    <ClInclude Include="top.h" />
+    <ClInclude Include="Torus.h" />
+    <ClInclude Include="vertexattributes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="phongAds.frag" />
+    <None Include="phongAds.vert" />
+    <None Include="solid_shader.frag" />
+    <None Include="solid_shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

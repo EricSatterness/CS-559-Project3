@@ -5,9 +5,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "shader.h"
+#include "Sphere.h"
 
 using namespace std;
 using namespace glm;
+
+Sphere* sphere;
+Shader shader;
 
 #pragma region Data Structs
 struct WindowData
@@ -17,6 +22,7 @@ struct WindowData
 	float window_aspect;
 	mat4 projection_matrix, modelview_matrix;
 	vector<string> instructions;
+	bool wireframe;
 } window;
 
 struct CameraData
@@ -103,6 +109,21 @@ void DisplayFunc()
 {
 	if (window.window_handle == -1)
 		return;
+
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
+
+	glm::mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
+	glm::mat4 worldModelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+
+
+	sphere->Draw(projection_matrix, worldModelView, window.size);
+
+	glutSwapBuffers();
+	glutPostRedisplay();
 }
 
 int main(int argc, char * argv[])
@@ -119,6 +140,23 @@ int main(int argc, char * argv[])
 	glutSpecialFunc(SpecialFunc);
 	glutCloseFunc(CloseFunc);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+	
+	if (glewInit() != GLEW_OK)
+	{
+		cerr << "GLEW failed to initialize." << endl;
+		return 0;
+	}
+
+	if(!shader.Initialize("phongAds.vert", "phongAds.frag"))
+	{
+		return 0;
+	}
+	currShader = &shader;
+	sphere = new Sphere();
+	if(!sphere->Initialize(1.0f, 30, 30))
+	{
+		sphere->TakeDown();
+	}
 
 	glutMainLoop();
 }
