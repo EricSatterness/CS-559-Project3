@@ -5,17 +5,17 @@
 */
 
 #include <iostream>
-#include "Square.h"
+#include "RectangularPrism.h"
 
 using namespace std;
 using namespace glm;
 
-Square::Square() : Object()
+RectangularPrism::RectangularPrism() : Object()
 {
 	color = vec3(MakeColor(255, 69, 0, 1.0f));
 }
 
-void Square::SquareVerticies(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, vec3 color)
+void RectangularPrism::Square(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, vec3 color)
 {
 	VertexAttributesPCN cur_vertex_top, cur_vertex_bottom , nxt_vertex_top,nxt_vertex_bottom;
 
@@ -55,20 +55,30 @@ void Square::SquareVerticies(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3
 
 	this->BuildNormalVisualizationGeometry();
 }
-bool Square::Initialize(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4)
+bool RectangularPrism::Initialize(vec3 t1, vec3 t2, vec3 t3, vec3 t4, vec3 b1, vec3 b2, vec3 b3, vec3 b4)
 {
-	if (this->GLReturnedError("Square::Initialize - on entry"))
+	if (this->GLReturnedError("RectangularPrism::Initialize - on entry"))
 		return false;
 
 	if (!super::Initialize())
 		return false;
-		
-	SquareVerticies(p1, p2, p3, p4, color);
 	
+
+	Square(t1, b1, b2, t2, color);
+	Square(b4, t4, t3, b3, color);
+	
+	Square(t4, t1, t2, t3, color);
+	Square(b3, b2, b1, b4, color);
+
+	Square(t1, t4, b4, b1, color);
+	Square(b2, b3, t3, t2, color);
+
+
+
 	if (!this->PostGLInitialize(&this->vertex_array_handle, &this->vertex_coordinate_handle, this->vertices.size() * sizeof(VertexAttributesPCN), &this->vertices[0]))
 		return false;
 
-
+	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) (sizeof(vec3) * 2));	// Note offset - legacy of older code
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) (sizeof(vec3) * 1));	// Same
@@ -89,19 +99,19 @@ bool Square::Initialize(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4)
 		glBindVertexArray(0);
 	}
 	
-	if (this->GLReturnedError("Square::Initialize - on exit"))
+	if (this->GLReturnedError("Rectangular Prism ::Initialize - on exit"))
 		return false;
 
 	return true;
 }
 
-void Square::TakeDown()
+void RectangularPrism::TakeDown()
 {
 	this->vertices.clear();
 	super::TakeDown();
 }
 
-void Square::Draw(const mat4 & projection, mat4 modelview, const ivec2 & size)
+void RectangularPrism::Draw(const mat4 & projection, mat4 modelview, const ivec2 &size)
 {
 	super::Draw(projection, modelview, size);
 }

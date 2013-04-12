@@ -13,34 +13,9 @@ using namespace glm;
 
 Curtain::Curtain() : Object()
 {
-	vec4 lighter_color(MakeColor(255, 69, 0, 1.0f));
-	vec4 darker_color = vec4(vec3(lighter_color) * 2.0f / 3.0f, 1.0f);
-	this->colors[0] = darker_color;
-	this->colors[1] = lighter_color;
-	color = vec3(colors[0]);
-	solidColor = true;
-}
-inline int ColorIndex(int i, int slices)
-{
-	return (i / (slices / 4)) % 2;
+	color = vec3(MakeColor(255, 69, 0, 1.0f));
 }
 
-inline int PreviousSlice(int i, int slices)
-{
-	return (i == 0) ? slices - 1 : i - 1;
-}
-
-void Curtain::BuildNormalVisualizationGeometry()
-{
-	const float normal_scalar = 0.125f;
-	for (int j = 1; j <= 3; ++j)
-	{
-		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position));
-		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position + this->vertices[this->vertices.size() - j].normal * normal_scalar));
-		this->normal_indices.push_back(this->normal_vertices.size() - 2);
-		this->normal_indices.push_back(this->normal_vertices.size() - 1);
-	}
-}
 void Curtain::Square(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, vec3 color, float r, float ri)
 {
 	VertexAttributesPCN cur_vertex_top, cur_vertex_bottom , nxt_vertex_top,nxt_vertex_bottom;
@@ -90,6 +65,7 @@ bool Curtain::Initialize(float width, float height, float depth, int waves, int 
 	if (!super::Initialize())
 		return false;
 	
+	slices = slices*waves;
 
 	float x = -width/2;
 	float xinc = width/slices;
@@ -152,14 +128,7 @@ bool Curtain::Initialize(float width, float height, float depth, int waves, int 
 void Curtain::TakeDown()
 {
 	this->vertices.clear();
-	this->shader.TakeDown();
-	this->solid_color.TakeDown();
 	super::TakeDown();
-}
-
-void Curtain::Draw(const ivec2 & size)
-{
-	assert(false);
 }
 
 void Curtain::Draw(const mat4 & projection, mat4 modelview, const ivec2 &size)

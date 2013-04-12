@@ -20,6 +20,7 @@ class Object
 {
 public:
 	Object();
+	glm::vec3 color;
 
 	virtual void TakeDown();
 	virtual bool Initialize();
@@ -38,10 +39,15 @@ protected:
 	GLuint normal_coordinate_handle;
 	GLuint normal_array_handle;
 
+
 	bool GLReturnedError(char * s);
 	std::vector<GLuint> vertex_indices;
 	std::vector<VertexAttributesP> normal_vertices;
 	std::vector<GLuint> normal_indices;
+	std::vector<VertexAttributesPCN> vertices;
+
+	void BuildNormalVisualizationGeometry();
+	typedef Object super;
 
 private:
 	Shader solid_color;

@@ -12,34 +12,7 @@ using namespace glm;
 
 Disk::Disk() : Object()
 {
-	vec4 lighter_color(MakeColor(255, 69, 0, 1.0f));
-	vec4 darker_color = vec4(vec3(lighter_color) * 2.0f / 3.0f, 1.0f);
-	this->colors[0] = darker_color;
-	this->colors[1] = lighter_color;
-	color = vec3(colors[0]);
-	solidColor = true;
-}
-
-inline int ColorIndex(int i, int slices)
-{
-	return (i / (slices / 4)) % 2;
-}
-
-inline int PreviousSlice(int i, int slices)
-{
-	return (i == 0) ? slices - 1 : i - 1;
-}
-
-void Disk::BuildNormalVisualizationGeometry()
-{
-	const float normal_scalar = 0.125f;
-	for (int j = 1; j <= 3; ++j)
-	{
-		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position));
-		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position + this->vertices[this->vertices.size() - j].normal * normal_scalar));
-		this->normal_indices.push_back(this->normal_vertices.size() - 2);
-		this->normal_indices.push_back(this->normal_vertices.size() - 1);
-	}
+	color = vec3(MakeColor(255, 69, 0, 1.0f));
 }
 
 bool Disk::Initialize(float innerRadius, float outerRadius, int slices, int loops)
@@ -52,9 +25,7 @@ bool Disk::Initialize(float innerRadius, float outerRadius, int slices, int loop
 
 	if (slices <= 0)
 		slices = 1;
-
-	slices *= 4;
-
+	
 	mat4 m;
 
 	const vec3 n = vec3(0.0f, 1.0f, 0.0f);
@@ -86,20 +57,10 @@ bool Disk::Initialize(float innerRadius, float outerRadius, int slices, int loop
 			next_radius_next_slices.normal = n;
 			next_radius_curr_slices.normal = n;
 
-			if(solidColor)
-			{
-				curr_radius_next_slices.color = color;
-				curr_radius_curr_slices.color = color;
-				next_radius_next_slices.color = color;
-				next_radius_curr_slices.color = color;
-			}
-			else
-			{
-				curr_radius_next_slices.color = vec3(this->colors[ColorIndex(i, slices)]);
-				curr_radius_curr_slices.color = vec3(this->colors[ColorIndex(i, slices)]);
-				next_radius_next_slices.color = vec3(this->colors[ColorIndex(i, slices)]);
-				next_radius_curr_slices.color = vec3(this->colors[ColorIndex(i, slices)]);
-			}
+			curr_radius_next_slices.color = color;
+			curr_radius_curr_slices.color = color;
+			next_radius_next_slices.color = color;
+			next_radius_curr_slices.color = color;
 		
 		
 			this->vertices.push_back(curr_radius_curr_slices);
@@ -158,15 +119,9 @@ bool Disk::Initialize(float innerRadius, float outerRadius, int slices, int loop
 void Disk::TakeDown()
 {
 	this->vertices.clear();
-	this->shader.TakeDown();
-	this->solid_color.TakeDown();
 	super::TakeDown();
 }
 
-void Disk::Draw(const ivec2 & size)
-{
-	assert(false);
-}
 void Disk::Draw(const mat4 & projection, mat4 modelview, const ivec2 &size)
 {
 	modelview = rotate(modelview, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));

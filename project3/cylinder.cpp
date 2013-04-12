@@ -12,34 +12,7 @@ using namespace glm;
 
 Cylinder::Cylinder() : Object()
 {
-	vec4 lighter_color(MakeColor(255, 69, 0, 1.0f));
-	vec4 darker_color = vec4(vec3(lighter_color) * 2.0f / 3.0f, 1.0f);
-	this->colors[0] = darker_color;
-	this->colors[1] = lighter_color;
-	color = vec3(colors[0]);
-	solidColor = true;
-}
-
-inline int ColorIndex(int i, int slices)
-{
-	return (i / (slices / 4)) % 2;
-}
-
-inline int PreviousSlice(int i, int slices)
-{
-	return (i == 0) ? slices - 1 : i - 1;
-}
-
-void Cylinder::BuildNormalVisualizationGeometry()
-{
-	const float normal_scalar = 0.125f;
-	for (int j = 1; j <= 3; ++j)
-	{
-		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position));
-		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position + this->vertices[this->vertices.size() - j].normal * normal_scalar));
-		this->normal_indices.push_back(this->normal_vertices.size() - 2);
-		this->normal_indices.push_back(this->normal_vertices.size() - 1);
-	}
+	color = vec3(MakeColor(255, 69, 0, 1.0f));
 }
 
 bool Cylinder::Initialize(float base, float top, float height, int slices, int stacks)
@@ -52,9 +25,7 @@ bool Cylinder::Initialize(float base, float top, float height, int slices, int s
 
 	if (slices < 0)
 		slices = 1;
-
-	slices *= 4;
-
+	
 	mat4 m;
 
 	const vec3 n = normalize(vec3(height, base-top, 0.0f));
@@ -88,21 +59,10 @@ bool Cylinder::Initialize(float base, float top, float height, int slices, int s
 			next_radius_next_slice.normal = vec3(m * vec4(n, 1.0f));
 			curr_radius_next_slice.normal = vec3(m * vec4(n, 1.0f));
 
-			if(solidColor)
-			{
-				next_radius_curr_slice.color = color;
-				curr_radius_curr_slice.color = color;
-				next_radius_next_slice.color = color;
-				curr_radius_next_slice.color = color;
-			}
-			else
-			{
-				next_radius_curr_slice.color = vec3(this->colors[ColorIndex(i, slices)]);
-				curr_radius_curr_slice.color = vec3(this->colors[ColorIndex(i, slices)]);
-				next_radius_next_slice.color = vec3(this->colors[ColorIndex(i, slices)]);
-				curr_radius_next_slice.color = vec3(this->colors[ColorIndex(i, slices)]);
-			}
-		
+			next_radius_curr_slice.color = color;
+			curr_radius_curr_slice.color = color;
+			next_radius_next_slice.color = color;
+			curr_radius_next_slice.color = color;		
 		
 			this->vertices.push_back(curr_radius_curr_slice);
 			this->vertices.push_back(next_radius_curr_slice);
@@ -160,14 +120,7 @@ bool Cylinder::Initialize(float base, float top, float height, int slices, int s
 void Cylinder::TakeDown()
 {
 	this->vertices.clear();
-	this->shader.TakeDown();
-	this->solid_color.TakeDown();
 	super::TakeDown();
-}
-
-void Cylinder::Draw(const ivec2 & size)
-{
-	assert(false);
 }
 
 void Cylinder::Draw(const mat4 & projection, mat4 modelview, const ivec2 &size)

@@ -5,17 +5,16 @@
 */
 
 #include <iostream>
-#include "Square.h"
+#include "Cube.h"
 
 using namespace std;
 using namespace glm;
 
-Square::Square() : Object()
+Cube::Cube() : Object()
 {
 	color = vec3(MakeColor(255, 69, 0, 1.0f));
 }
-
-void Square::SquareVerticies(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, vec3 color)
+void Cube::Square(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, vec3 color)
 {
 	VertexAttributesPCN cur_vertex_top, cur_vertex_bottom , nxt_vertex_top,nxt_vertex_bottom;
 
@@ -55,19 +54,34 @@ void Square::SquareVerticies(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3
 
 	this->BuildNormalVisualizationGeometry();
 }
-bool Square::Initialize(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4)
+bool Cube::Initialize(float size)
 {
-	if (this->GLReturnedError("Square::Initialize - on entry"))
+	if (this->GLReturnedError("Cube::Initialize - on entry"))
 		return false;
 
 	if (!super::Initialize())
 		return false;
-		
-	SquareVerticies(p1, p2, p3, p4, color);
+	
+	vec3 urf( size/2,  size/2,  size/2);
+	vec3 ulf(-size/2,  size/2,  size/2);
+	vec3 lrf( size/2, -size/2,  size/2);
+	vec3 llf(-size/2, -size/2,  size/2);
+	vec3 urb( size/2,  size/2,  -size/2);
+	vec3 ulb(-size/2,  size/2,  -size/2);
+	vec3 lrb( size/2, -size/2,  -size/2);
+	vec3 llb(-size/2, -size/2,  -size/2);
+
+	Square(ulf, llf, lrf, urf, color);
+	Square(llb, ulb, urb, lrb, color);
+	
+	Square(ulb, ulf, urf, urb, color);
+	Square(lrb, lrf, llf, llb, color);
+
+	Square(ulf, ulb, llb, llf, color);
+	Square(lrf, lrb, urb, urf, color);
 	
 	if (!this->PostGLInitialize(&this->vertex_array_handle, &this->vertex_coordinate_handle, this->vertices.size() * sizeof(VertexAttributesPCN), &this->vertices[0]))
 		return false;
-
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) (sizeof(vec3) * 2));	// Note offset - legacy of older code
@@ -89,19 +103,19 @@ bool Square::Initialize(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4)
 		glBindVertexArray(0);
 	}
 	
-	if (this->GLReturnedError("Square::Initialize - on exit"))
+	if (this->GLReturnedError("Cube::Initialize - on exit"))
 		return false;
 
 	return true;
 }
 
-void Square::TakeDown()
+void Cube::TakeDown()
 {
 	this->vertices.clear();
 	super::TakeDown();
 }
 
-void Square::Draw(const mat4 & projection, mat4 modelview, const ivec2 & size)
+void Cube::Draw(const mat4 & projection, mat4 modelview, const ivec2 &size)
 {
 	super::Draw(projection, modelview, size);
 }

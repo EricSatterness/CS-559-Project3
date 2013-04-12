@@ -62,6 +62,7 @@ bool Object::Initialize()
 {
 	solid_color.Initialize("solid_shader.vert", "solid_shader.frag");
 	this->InternalInitialize();
+	this->draw_normals = false;
 	return true;
 }
 
@@ -86,12 +87,22 @@ bool Object::GLReturnedError(char * s)
 	return return_error;
 }
 
+void Object::BuildNormalVisualizationGeometry()
+{
+	const float normal_scalar = 0.125f;
+	for (int j = 1; j <= 3; ++j)
+	{
+		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position));
+		this->normal_vertices.push_back(VertexAttributesP(this->vertices[this->vertices.size() - j].position + this->vertices[this->vertices.size() - j].normal * normal_scalar));
+		this->normal_indices.push_back(this->normal_vertices.size() - 2);
+		this->normal_indices.push_back(this->normal_vertices.size() - 1);
+	}
+}
 
 void Object::Draw(const mat4 & projection, mat4 modelview, const ivec2 & size)
 {
 	if (this->GLReturnedError("Object::Draw - on entry"))
 		return;
-	//glEnable(GL_CULL_FACE); 
 
 	mat4 mvp = projection * modelview;
 	mat3 nm = inverse(transpose(mat3(modelview)));
