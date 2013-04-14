@@ -9,12 +9,12 @@ Moshball::Moshball()
 	this->sphere = new Sphere();
 }
 
-bool Moshball::Initialize(float radius, int slices, int stacks)
+bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
 {
 	// Make the moshball's Box2D circle
 	b2BodyDef ballDef;
 	ballDef.type = b2_dynamicBody;
-	ballDef.position.Set(5.0f,5.0f);
+	ballDef.position.Set(center.x, center.y);
 	this->body = world.CreateBody(&ballDef);
 
 	b2CircleShape ballShape;
@@ -27,7 +27,6 @@ bool Moshball::Initialize(float radius, int slices, int stacks)
 	ballFixture.restitution = 0.5f;
 	this->body->CreateFixture(&ballFixture);
 	this->body->SetLinearDamping(0.25f);
-
 	
 
 	if (!this->sphere->Initialize(radius, slices, stacks))

@@ -12,7 +12,7 @@ public:
 	b2Body* body;
 
 	Moshball();
-	bool Initialize(float radius, int slices, int stacks);
+	bool Initialize(glm::vec3 center, float radius, int slices, int stacks);
 	void Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size);
 	void TakeDown();
 

@@ -34,10 +34,10 @@ struct CameraData
 #pragma endregion
 
 #pragma region Variables
-// Number of moshballs to create in the game
-int numBalls = 1;
-int ballSlices = 30;
-int ballStacks = 30;
+int numBalls = 3;			// Number of moshballs to create in the game
+unsigned int seed = 0;		// Seed for the sudo-random moshball positions
+int ballSlices = 30;		// Number of slices to use when drawing the balls
+int ballStacks = 30;		// Number of stacks to use when drawing the balls
 float ballRadius = 1.0f;
 
 /* Pointers */
@@ -176,11 +176,7 @@ void DisplayFunc()
 
 		player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 
-		//// Now print the position and angle of the body.
-		//b2Vec2 position = player->body->GetPosition();
-		//float32 angle = player->body->GetAngle();
 
-		//printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
 
 		for (int i = 0; i < (int)walls.size(); i++)
 		{
@@ -288,14 +284,14 @@ int main(int argc, char * argv[])
 	world.SetDebugDraw(&debugDraw);
 
 	// NOTES:
+	// Heights and widths in box2D are measured from the center of the shape (not end to end)
 	// Friction will only apply when objects collide. In order to slow a ball down, we need to apply damping to the velocity. The body has a linear damping function but we may want to implement our own non-linear damping.
 
-	// Make the walls
-	// Scale: 1 meter = 50 feet
-	float wall_t = 0.5f;
-	// Want player area to be 5280sqft, so add wall thickness to make the lengths correct
-	//float wall_l = 105.6f + wall+_t;
-	float wall_l = 25.0f + wall_t;
+	// Scale: 1 meter = 50 feet; Want player area to be 5280sqft
+	//float arena_width = 105.6f;
+	float arena_width = 50.0f;
+	float wall_t = 0.5f;							// Wall thickness
+	float wall_l = (arena_width / 2.0f) + wall_t;	// Wall length. Need to add thickness
 
 	Wall* wall1 = new Wall();
 	if (!wall1->Initialize(vec3(0.0f, wall_l - wall_t, 0.0f), wall_l, wall_t, wall_t))
@@ -338,10 +334,18 @@ int main(int argc, char * argv[])
 		return 0;
 	}
 
+	// Variables to set the range of random starting positions. Arena is oriented at (0,0)
+	float position_range = arena_width - (ballRadius * 2.0f);
+	float position_offset = position_range / 2.0f;
+	srand(seed);
 	for (int i = 0; i < numBalls; ++i)
 	{
 		Moshball* m = new Moshball();
-		if (!m->Initialize(ballRadius, ballSlices, ballStacks))
+
+		float x = ((float)rand()/(float)RAND_MAX) * position_range - position_offset;
+		float y = ((float)rand()/(float)RAND_MAX) * position_range - position_offset;
+
+		if (!m->Initialize(vec3(x, y, 0.0f), ballRadius, ballSlices, ballStacks))
 		{
 			m->TakeDown();
 			delete m;
