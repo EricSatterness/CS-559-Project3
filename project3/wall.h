@@ -4,18 +4,18 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <Box2D/Box2D.h>
 #include "Globals.h"
-#include "Sphere.h"
+#include "Square.h"
 
-class Player
+class Wall
 {
 public:
 	b2Body* body;
 
-	Player();
-	bool Initialize(float radius, int slices, int stacks);
+	Wall();
+	bool Initialize(glm::vec3 center, float width, float height, float depth);
 	void Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size);
 	void TakeDown();
 
 private:
-	Sphere* sphere;
+	Square* square;
 };

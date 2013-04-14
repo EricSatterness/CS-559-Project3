@@ -85,6 +85,7 @@
     <ClCompile Include="disk.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="moshball.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="Render.cpp" />
@@ -95,12 +96,14 @@
     <ClCompile Include="top.cpp" />
     <ClCompile Include="Torus.cpp" />
     <ClCompile Include="vertexattributes.cpp" />
+    <ClCompile Include="wall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Curtain.h" />
     <ClInclude Include="cylinder.h" />
     <ClInclude Include="disk.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="moshball.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="Render.h" />
@@ -111,6 +114,7 @@
     <ClInclude Include="top.h" />
     <ClInclude Include="Torus.h" />
     <ClInclude Include="vertexattributes.h" />
+    <ClInclude Include="wall.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phongAds.frag" />

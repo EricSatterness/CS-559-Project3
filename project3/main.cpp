@@ -5,16 +5,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Globals.h"
 #include "shader.h"
-#include "Sphere.h"
-
 #include "Render.h"
+#include "wall.h"
+#include "player.h"
+#include "moshball.h"
 
 using namespace std;
 using namespace glm;
-
-Sphere* sphere;
-Shader shader;
 
 #pragma region Data Structs
 struct WindowData
@@ -34,15 +33,23 @@ struct CameraData
 } mainCamera;
 #pragma endregion
 
-#pragma region Box2D Variables
+#pragma region Variables
+// Number of moshballs to create in the game
+int numBalls = 1;
+int ballSlices = 30;
+int ballStacks = 30;
+float ballRadius = 1.0f;
+
+/* Pointers */
+Shader shader;
+vector<Wall *> walls;
+Player* player;
+vector<Moshball *> moshballs;
+
+/* Box2D Variables */
 DebugDraw debugDraw;
 int32 framePeriod = 16;
 float32 speed = 30.0f;
-
-// Define the gravity vector.
-b2Vec2 gravity(0.0f, 0.0f);
-// Construct a world object, which will hold and simulate the rigid bodies.
-b2World world(gravity);
 
 // Prepare for simulation. Typically we use a time step of 1/60 of a
 // second (60Hz) and 10 iterations. This provides a high quality simulation
@@ -50,8 +57,6 @@ b2World world(gravity);
 float32 timeStep = 1.0f / 60.0f;
 int32 velocityIterations = 6;
 int32 positionIterations = 2;
-
-b2Body* playerBody;
 #pragma endregion
 
 // Take care of taking down and deleting any items
@@ -59,15 +64,21 @@ void CloseFunc()
 {
 	window.window_handle = -1;
 
-	/*for (int i = 0; i < (int)window.objects.size(); i++)
+	if (player != NULL)
 	{
-		if (window.objects[i] != NULL)
+		//player->TakeDown();
+		delete player;
+	}
+
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		if (moshballs[i] != NULL)
 		{
-			window.objects[i]->TakeDown();
-			delete window.objects[i];
+			//moshballs[i]->TakeDown();
+			delete moshballs[i];
 		}
 
-	}*/
+	}
 }
 
 void ReshapeFunc(int w, int h)
@@ -87,7 +98,7 @@ void KeyboardFunc(unsigned char c, int x, int y)
 	switch (c)
 	{
 	case 'd':
-		window.debugBox2D = ~window.debugBox2D;
+		window.debugBox2D = !window.debugBox2D;
 		break;
 	case 'x':
 	case 27:
@@ -101,16 +112,16 @@ void SpecialFunc(int key, int x, int y)
 	switch(key)
 	{
 		case GLUT_KEY_LEFT:
-			playerBody->SetLinearVelocity(b2Vec2(-speed, 0.0f));
+			player->body->SetLinearVelocity(b2Vec2(-speed, 0.0f));
 			break;
 		case GLUT_KEY_RIGHT:
-			playerBody->SetLinearVelocity(b2Vec2(speed, 0.0f));
+			player->body->SetLinearVelocity(b2Vec2(speed, 0.0f));
 			break;
 		case GLUT_KEY_UP:
-			playerBody->SetLinearVelocity(b2Vec2(0.0f, speed));
+			player->body->SetLinearVelocity(b2Vec2(0.0f, speed));
 			break;
 		case GLUT_KEY_DOWN:
-			playerBody->SetLinearVelocity(b2Vec2(0.0f, -speed));
+			player->body->SetLinearVelocity(b2Vec2(0.0f, -speed));
 			break;
 	}
 }
@@ -157,17 +168,38 @@ void DisplayFunc()
 		glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
 		glm::mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
-		glm::mat4 worldModelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+		glm::mat4 worldModelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -8.0f));
 
 
-		sphere->Draw(projection_matrix, worldModelView, window.size);
+		worldModelView = scale(worldModelView, vec3(0.1f, 0.1f, 0.1f));
+		world.Step(timeStep, velocityIterations, positionIterations);
+
+		player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+
+		//// Now print the position and angle of the body.
+		//b2Vec2 position = player->body->GetPosition();
+		//float32 angle = player->body->GetAngle();
+
+		//printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
+
+		for (int i = 0; i < (int)walls.size(); i++)
+		{
+			walls[i]->Draw(projection_matrix, worldModelView, window.size);
+		}
+
+		player->Draw(projection_matrix, worldModelView, window.size);
+
+		for (int i = 0; i < (int)moshballs.size(); i++)
+		{
+			moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
+		}
 
 		glutSwapBuffers();
 		//glutPostRedisplay();
 	}
 	else
 	{
-		/* Box2D Testing */
+		/* Box2D debug mode */
 		if (window.window_handle == -1)
 			return;
 
@@ -184,10 +216,10 @@ void DisplayFunc()
 		glMatrixMode(GL_MODELVIEW);
 		mat4 worldModelView = translate(mat4(1.0f), glm::vec3(0.0f, 0.0f, -8.0f));
 		worldModelView = scale(worldModelView, vec3(0.1f, 0.1f, 0.1f));
-		//worldModelView = scale(worldModelView, vec3(2.0f, 2.0f, 2.0f));
 		glLoadMatrixf(value_ptr(worldModelView));
 
 
+		// Draw a square so I can see the origin (just to make position estimation a little easier)
 		glColor3f(1,1,1);
 		glBegin(GL_QUADS);
 			glVertex3f(-0.1f, -0.1f, 0.0f);
@@ -196,19 +228,18 @@ void DisplayFunc()
 			glVertex3f(-0.1f, 0.1f, 0.0f);
 		glEnd();
 
-		// HelloWorld.cpp
 		// Instruct the world to perform a single step of simulation.
 		// It is generally best to keep the time step and iterations fixed.
 		world.Step(timeStep, velocityIterations, positionIterations);
 		world.DrawDebugData();
 
-		playerBody->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+		player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 
-		// Now print the position and angle of the body.
-		b2Vec2 position = playerBody->GetPosition();
-		float32 angle = playerBody->GetAngle();
+		//// Now print the position and angle of the body.
+		//b2Vec2 position = player->body->GetPosition();
+		//float32 angle = player->body->GetAngle();
 
-		printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
+		//printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
 
 		glutSwapBuffers();
 	}
@@ -248,13 +279,6 @@ int main(int argc, char * argv[])
 		return 0;
 	}
 	currShader = &shader;
-	sphere = new Sphere();
-	if(!sphere->Initialize(1.0f, 30, 30))
-	{
-		sphere->TakeDown();
-	}
-
-
 
 	/* Box2D testing */
 	B2_NOT_USED(argc);
@@ -266,8 +290,6 @@ int main(int argc, char * argv[])
 	// NOTES:
 	// Friction will only apply when objects collide. In order to slow a ball down, we need to apply damping to the velocity. The body has a linear damping function but we may want to implement our own non-linear damping.
 
-	// TODO: Move these body instantiations into their own classes because we will want to map them to OpenGL objects
-
 	// Make the walls
 	// Scale: 1 meter = 50 feet
 	float wall_t = 0.5f;
@@ -275,61 +297,58 @@ int main(int argc, char * argv[])
 	//float wall_l = 105.6f + wall+_t;
 	float wall_l = 25.0f + wall_t;
 
-	b2BodyDef wallBodyDef;
-	wallBodyDef.position.Set(wall_l - wall_t, 0.0f);
-	b2Body* wallBody = world.CreateBody(&wallBodyDef);
+	Wall* wall1 = new Wall();
+	if (!wall1->Initialize(vec3(0.0f, wall_l - wall_t, 0.0f), wall_l, wall_t, wall_t))
+	{
+		wall1->TakeDown();
+		delete wall1;
+		return 0;
+	}
+	Wall* wall2 = new Wall();
+	if (!wall2->Initialize(vec3(wall_l - wall_t, 0.0f, 0.0f), wall_t, wall_l, wall_t))
+	{
+		wall2->TakeDown();
+		delete wall2;
+		return 0;
+	}
+	Wall* wall3 = new Wall();
+	if (!wall3->Initialize(vec3(0.0f, -wall_l + wall_t, 0.0f), wall_l, wall_t, wall_t))
+	{
+		wall3->TakeDown();
+		delete wall3;
+		return 0;
+	}
+	Wall* wall4 = new Wall();
+	if (!wall4->Initialize(vec3(-wall_l + wall_t, 0.0f, 0.0f), wall_t, wall_l, wall_t))
+	{
+		wall4->TakeDown();
+		delete wall4;
+		return 0;
+	}
+	walls.push_back(wall1);
+	walls.push_back(wall2);
+	walls.push_back(wall3);
+	walls.push_back(wall4);
+	
+	player = new Player();
+	if (!player->Initialize(ballRadius, ballSlices, ballStacks))
+	{
+		player->TakeDown();
+		delete player;
+		return 0;
+	}
 
-	b2PolygonShape wallShape;
-	wallShape.SetAsBox(wall_t, wall_l);
-	wallBody->CreateFixture(&wallShape, 1.0f);
-
-	wallBodyDef.position.Set(-wall_l + wall_t, 0.0f);
-	wallBody = world.CreateBody(&wallBodyDef);
-	wallBody->CreateFixture(&wallShape, 1.0f);
-
-	wallBodyDef.position.Set(0.0f, wall_l - wall_t);
-	wallBody = world.CreateBody(&wallBodyDef);
-	wallShape.SetAsBox(wall_l, wall_t);
-	wallBody->CreateFixture(&wallShape, 1.0f);
-
-	wallBodyDef.position.Set(0.0f, -wall_l + wall_t);
-	wallBody = world.CreateBody(&wallBodyDef);
-	wallBody->CreateFixture(&wallShape, 1.0f);
-
-
-	// Make the player's circle
-	b2BodyDef playerDef;
-	playerDef.type = b2_dynamicBody;
-	playerDef.position.Set(0.0f,0.0f);
-	playerBody = world.CreateBody(&playerDef);
-
-	b2CircleShape playerShape;
-	playerShape.m_radius = 1.0f;
-
-	b2FixtureDef playerFixture;
-	playerFixture.shape = &playerShape;
-	playerFixture.density = 1.0f;
-	playerFixture.friction = 0.3f;
-	playerFixture.restitution = 0.2f;
-	playerBody->CreateFixture(&playerFixture);
-
-
-	// Make a moshball
-	b2BodyDef ballDef;
-	ballDef.type = b2_dynamicBody;
-	ballDef.position.Set(5.0f,5.0f);
-	b2Body* ballBody = world.CreateBody(&ballDef);
-
-	b2CircleShape ballShape;
-	ballShape.m_radius = 1.0f;
-
-	b2FixtureDef ballFixture;
-	ballFixture.shape = &playerShape;
-	ballFixture.density = 1.0f;
-	ballFixture.friction = 0.3f;
-	ballFixture.restitution = 0.5f;
-	ballBody->CreateFixture(&ballFixture);
-	ballBody->SetLinearDamping(0.25f);
+	for (int i = 0; i < numBalls; ++i)
+	{
+		Moshball* m = new Moshball();
+		if (!m->Initialize(ballRadius, ballSlices, ballStacks))
+		{
+			m->TakeDown();
+			delete m;
+			return 0;
+		}
+		moshballs.push_back(m);
+	}
 
 	// Use a timer to control the frame rate.
 	glutTimerFunc(framePeriod, Timer, 0);

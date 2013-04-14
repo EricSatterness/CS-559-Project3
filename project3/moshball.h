@@ -6,12 +6,12 @@
 #include "Globals.h"
 #include "Sphere.h"
 
-class Player
+class Moshball
 {
 public:
 	b2Body* body;
 
-	Player();
+	Moshball();
 	bool Initialize(float radius, int slices, int stacks);
 	void Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size);
 	void TakeDown();
