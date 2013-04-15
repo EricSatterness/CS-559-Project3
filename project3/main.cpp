@@ -7,14 +7,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "shader.h"
 #include "Sphere.h"
-
+#include "Cube.h"
+#include "Square.h"
+#include <list>
 #include "Render.h"
 
 using namespace std;
 using namespace glm;
 
 Sphere* sphere;
+Square* floorSquare;
+Cube* cube;
 Shader shader;
+float xRot = 0.0f;
+float yRot = 0.0f; 
+float zoom = 0.05f;
 
 #pragma region Data Structs
 struct WindowData
@@ -51,7 +58,17 @@ float32 timeStep = 1.0f / 60.0f;
 int32 velocityIterations = 6;
 int32 positionIterations = 2;
 
+
+// Scale: 1 meter = 50 feet
+float wall_t = 0.5f;
+// Want player area to be 5280sqft, so add wall thickness to make the lengths correct
+//float wall_l = 105.6f + wall+_t;
+float wall_l = 25.0f + wall_t;
+
 b2Body* playerBody;
+//b2Body* ballBody;
+
+list<b2Body*> balls;
 #pragma endregion
 
 // Take care of taking down and deleting any items
@@ -69,7 +86,6 @@ void CloseFunc()
 
 	}*/
 }
-
 void ReshapeFunc(int w, int h)
 {
 	if (window.window_handle != -1 &&  h > 0)
@@ -78,7 +94,6 @@ void ReshapeFunc(int w, int h)
 		window.window_aspect = float(w) / float(h);
 	}
 }
-
 void KeyboardFunc(unsigned char c, int x, int y)
 {
 	if (window.window_handle == -1)
@@ -86,8 +101,27 @@ void KeyboardFunc(unsigned char c, int x, int y)
 
 	switch (c)
 	{
+	case '=':
+	case '+':
+		zoom += .001;
+		break;
+	case '-':
+		zoom -= .001;
+		break;
+	case '8':
+		xRot += 1;
+		break;
+	case '6':
+		yRot += 1;
+		break;
+	case '2':
+		xRot -= 1;
+		break;
+	case '4':
+		yRot -= 1;
+		break;
 	case 'd':
-		window.debugBox2D = ~window.debugBox2D;
+		window.debugBox2D = !window.debugBox2D;
 		break;
 	case 'x':
 	case 27:
@@ -95,7 +129,6 @@ void KeyboardFunc(unsigned char c, int x, int y)
 		return;
 	}
 }
-
 void SpecialFunc(int key, int x, int y)
 {
 	switch(key)
@@ -114,7 +147,6 @@ void SpecialFunc(int key, int x, int y)
 			break;
 	}
 }
-
 void DisplayInstructions()
 {
 	if (window.window_handle == -1)
@@ -142,11 +174,13 @@ void DisplayInstructions()
 		glTranslated(0, -150, 0);
 	}
 }
-
 void DisplayFunc()
 {
 	if (window.window_handle == -1)
 		return;
+
+	world.Step(timeStep, velocityIterations, positionIterations);
+	//playerBody->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 
 	if (!window.debugBox2D)
 	{
@@ -158,9 +192,29 @@ void DisplayFunc()
 
 		glm::mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
 		glm::mat4 worldModelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+		worldModelView = glm::rotate(worldModelView, yRot, glm::vec3(0.0f, 1.0f, 0.0f));
+		worldModelView = glm::rotate(worldModelView, xRot, glm::vec3(1.0f, 0.0f, 0.0f));
+		float sf = zoom;
+		worldModelView = glm::scale(worldModelView, glm::vec3(sf, sf, sf));
 
+		for(auto it = balls.cbegin(); it!=balls.cend(); it++)
+		{
+			b2Vec2 pos = (*it)-> GetPosition();
+			sphere->Draw(projection_matrix, glm::translate(worldModelView, vec3(pos.x, pos.y, 0.0f)), window.size);
+		}
+		/*b2Vec2 pos = playerBody->GetPosition();
+		sphere->Draw(projection_matrix, glm::translate(worldModelView, vec3(pos.x, pos.y, 0.0f)), window.size);
+		
+		pos = ballBody->GetPosition();
+		sphere->Draw(projection_matrix, glm::translate(worldModelView, vec3(pos.x, pos.y, 0.0f)), window.size);
+*/
+		cube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(wall_l - wall_t, 0.0f, -0.5f)), glm::vec3(2.0f*wall_t, 2.0f*wall_l, 1.0f)), window.size);
+		cube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(wall_t - wall_l, 0.0f, -0.5f)), glm::vec3(2.0f*wall_t, 2.0f*wall_l, 1.0f)), window.size);
 
-		sphere->Draw(projection_matrix, worldModelView, window.size);
+		cube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(0.0f, wall_l - wall_t, -0.5f)), glm::vec3(2.0f*wall_l, 2.0f*wall_t, 1.0f)), window.size);
+		cube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(0.0f, wall_t - wall_l, -0.5f)), glm::vec3(2.0f*wall_l, 2.0f*wall_t, 1.0f)), window.size);
+		
+		floorSquare->Draw(projection_matrix, worldModelView, window.size);
 
 		glutSwapBuffers();
 		//glutPostRedisplay();
@@ -199,10 +253,10 @@ void DisplayFunc()
 		// HelloWorld.cpp
 		// Instruct the world to perform a single step of simulation.
 		// It is generally best to keep the time step and iterations fixed.
-		world.Step(timeStep, velocityIterations, positionIterations);
+		//world.Step(timeStep, velocityIterations, positionIterations);
 		world.DrawDebugData();
 
-		playerBody->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+		//playerBody->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 
 		// Now print the position and angle of the body.
 		b2Vec2 position = playerBody->GetPosition();
@@ -212,8 +266,8 @@ void DisplayFunc()
 
 		glutSwapBuffers();
 	}
+	playerBody->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 }
-
 // This is used to control the frame rate (60Hz).
 static void Timer(int)
 {
@@ -221,7 +275,6 @@ static void Timer(int)
 	glutPostRedisplay();
 	glutTimerFunc(framePeriod, Timer, 0);
 }
-
 int main(int argc, char * argv[])
 {
 	glutInit(&argc, argv);
@@ -253,6 +306,13 @@ int main(int argc, char * argv[])
 	{
 		sphere->TakeDown();
 	}
+	cube = new Cube();
+	if(!cube->Initialize(1.0f))
+		cube->TakeDown();
+
+	floorSquare = new Square();
+	if(!floorSquare->Initialize(vec3(wall_l-wall_t, wall_l-wall_t, -1.0f), vec3(wall_t-wall_l, wall_l-wall_t, -1.0f), vec3(wall_t-wall_l, wall_t-wall_l, -1.0f), vec3(wall_l-wall_t, wall_t-wall_l, -1.0f)))
+		floorSquare->TakeDown();
 
 
 
@@ -269,12 +329,6 @@ int main(int argc, char * argv[])
 	// TODO: Move these body instantiations into their own classes because we will want to map them to OpenGL objects
 
 	// Make the walls
-	// Scale: 1 meter = 50 feet
-	float wall_t = 0.5f;
-	// Want player area to be 5280sqft, so add wall thickness to make the lengths correct
-	//float wall_l = 105.6f + wall+_t;
-	float wall_l = 25.0f + wall_t;
-
 	b2BodyDef wallBodyDef;
 	wallBodyDef.position.Set(wall_l - wall_t, 0.0f);
 	b2Body* wallBody = world.CreateBody(&wallBodyDef);
@@ -302,6 +356,7 @@ int main(int argc, char * argv[])
 	playerDef.type = b2_dynamicBody;
 	playerDef.position.Set(0.0f,0.0f);
 	playerBody = world.CreateBody(&playerDef);
+	balls.push_back(playerBody);
 
 	b2CircleShape playerShape;
 	playerShape.m_radius = 1.0f;
@@ -311,14 +366,16 @@ int main(int argc, char * argv[])
 	playerFixture.density = 1.0f;
 	playerFixture.friction = 0.3f;
 	playerFixture.restitution = 0.2f;
-	playerBody->CreateFixture(&playerFixture);
+	//playerBody->CreateFixture(&playerFixture);
+	balls.back()->CreateFixture(&playerFixture);
 
 
 	// Make a moshball
 	b2BodyDef ballDef;
 	ballDef.type = b2_dynamicBody;
 	ballDef.position.Set(5.0f,5.0f);
-	b2Body* ballBody = world.CreateBody(&ballDef);
+	//ballBody = world.CreateBody(&ballDef);
+	balls.push_back(world.CreateBody(&playerDef));
 
 	b2CircleShape ballShape;
 	ballShape.m_radius = 1.0f;
@@ -328,8 +385,10 @@ int main(int argc, char * argv[])
 	ballFixture.density = 1.0f;
 	ballFixture.friction = 0.3f;
 	ballFixture.restitution = 0.5f;
-	ballBody->CreateFixture(&ballFixture);
-	ballBody->SetLinearDamping(0.25f);
+	//ballBody->CreateFixture(&ballFixture);
+	//ballBody->SetLinearDamping(0.25f);
+	balls.back()->CreateFixture(&ballFixture);
+	balls.back()->SetLinearDamping(0.25f);
 
 	// Use a timer to control the frame rate.
 	glutTimerFunc(framePeriod, Timer, 0);
