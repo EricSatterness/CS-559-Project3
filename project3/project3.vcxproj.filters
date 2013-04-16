@@ -61,16 +61,22 @@
       <Filter>Source Files</Filter>
     </ClCompile>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClCompile Include="moshball.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wall.cpp">
 =======
+=======
+>>>>>>> master
     <ClCompile Include="RectangularPrism.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Cube.cpp">
+<<<<<<< HEAD
 >>>>>>> Rendering Scene
+=======
+>>>>>>> master
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -118,16 +124,22 @@
       <Filter>Header Files</Filter>
     </ClInclude>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClInclude Include="moshball.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wall.h">
 =======
+=======
+>>>>>>> master
     <ClInclude Include="RectangularPrism.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Cube.h">
+<<<<<<< HEAD
 >>>>>>> Rendering Scene
+=======
+>>>>>>> master
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
