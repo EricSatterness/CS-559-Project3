@@ -8,12 +8,14 @@ using namespace glm;
 Wall::Wall()
 {
 	// OpenGL rectangle to represent the wall
-	this->square = new Square();
+	this->cube = new Cube();
 }
 
 // NOTE: width, height, and depth are measured from the center of the shape
 bool Wall::Initialize(vec3 center, float width, float height, float depth)
 {
+	this->width = width;
+	this->height = height;
 	// Make a wall
 	// Scale: 1 meter = 50 feet
 	//float wall_t = 0.5f;
@@ -32,17 +34,7 @@ bool Wall::Initialize(vec3 center, float width, float height, float depth)
 	wallShape.SetAsBox(width, height);
 	this->body->CreateFixture(&wallShape, 1.0f);
 
-	/*vec3 p1(center.x + width, center.y + height, center.z);
-	vec3 p3(center.x - width, center.y - height, center.z);
-	vec3 p2(center.x + width, center.y - height, center.z);
-	vec3 p4(center.x - width, center.y + height, center.z);*/
-
-	vec3 p1(width, height, center.z);
-	vec3 p3(-width, -height, center.z);
-	vec3 p2(width, -height, center.z);
-	vec3 p4(-width, height, center.z);
-
-	if (!this->square->Initialize(p1, p2, p3, p4))
+	if(!this->cube->Initialize(1))
 		return false;
 
 	return true;
@@ -52,14 +44,14 @@ void Wall::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::iv
 {
 	// Translate modelview based on box2D position
 	b2Vec2 position = this->body->GetPosition();
-	mat4 m = translate(modelview, vec3(position.x, position.y, 0.0f));
+	mat4 m = translate(modelview, vec3(position.x, position.y, -0.5f));
 
-	this->square->Draw(projection, m, size);
+	this->cube->Draw(projection, scale(m, vec3(2*width, 2*height, 1.0f)), size);
 }
 
 void Wall::TakeDown()
 {
-	this->square->TakeDown();
-	delete this->square;
+	this->cube->TakeDown();
+	delete this->cube;
 	world.DestroyBody(this->body);
 }

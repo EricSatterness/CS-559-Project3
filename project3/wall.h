@@ -4,7 +4,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <Box2D/Box2D.h>
 #include "Globals.h"
-#include "Square.h"
+#include "Cube.h"
 
 class Wall
 {
@@ -17,5 +17,6 @@ public:
 	void TakeDown();
 
 private:
-	Square* square;
+	float width, height;
+	Cube* cube;
 };
