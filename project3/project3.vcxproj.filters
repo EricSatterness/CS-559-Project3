@@ -60,10 +60,17 @@
     <ClCompile Include="player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="moshball.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wall.cpp">
+=======
+    <ClCompile Include="RectangularPrism.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cube.cpp">
+>>>>>>> Rendering Scene
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,10 +117,17 @@
     <ClInclude Include="player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="moshball.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wall.h">
+=======
+    <ClInclude Include="RectangularPrism.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube.h">
+>>>>>>> Rendering Scene
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
