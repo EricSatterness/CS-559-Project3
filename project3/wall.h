@@ -17,6 +17,6 @@ public:
 	void TakeDown();
 
 private:
-	float width, height;
+	float width, height, depth;
 	Cube* cube;
 };

@@ -6,7 +6,7 @@ using namespace glm;
 Moshball::Moshball()
 {
 	// OpenGL sphere that will represent the ball
-	this->sphere = new Sphere();
+	this->sphere = new Sphere(vec3(0.27f, 1.0f, 0.0f));
 }
 
 bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
@@ -17,7 +17,6 @@ bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
 	ballDef.position.Set(center.x, center.y);
 	this->body = world.CreateBody(&ballDef);
 
-	//this->body->SetUserData("moshball");
 	box2dUserData *u = new box2dUserData();
 	u->objectType = OBJECT_TYPE_MOSHBALL;
 	u->object = this;
@@ -52,6 +51,17 @@ void Moshball::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm
 
 void Moshball::startContact()
 {
+	// Change the sphere's color
+
+	// This works but it slows down the rendering. Visually, we see the delay
+	/*this->sphere->TakeDown();
+	delete this->sphere;
+	this->sphere = new Sphere(vec3(1.0f, 0.27f, 0.0f));
+	this->sphere->Initialize(1.0f, 30, 30);*/
+
+	this->sphere->ChangeColor(vec3(1.0f, 0.27f, 0.0f));
+
+	// Reset the timer
 
 }
 

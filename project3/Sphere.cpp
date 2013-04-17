@@ -15,6 +15,11 @@ Sphere::Sphere() : Object()
 	color = vec3(MakeColor(255, 69, 0, 1.0f));
 }
 
+Sphere::Sphere(vec3 color) : Object()
+{
+	this->color = color;
+}
+
 bool Sphere::Initialize(float radius, int slices, int stacks)
 {
 	if (this->GLReturnedError("Sphere::Initialize - on entry"))
@@ -112,6 +117,28 @@ bool Sphere::Initialize(float radius, int slices, int stacks)
 		return false;
 
 	return true;
+}
+
+// NOTE: May want to move this to the object class as it could be useful to other objects as well
+void Sphere::ChangeColor(vec3 color)
+{
+	// Modify the color of every vertex
+	for (int i = 0; i < (int)this->vertices.size(); ++i)
+	{
+		this->vertices[i].color = color;
+	}
+	
+	// Need to rebind the vertex array
+	this->PostGLInitialize(&this->vertex_array_handle, &this->vertex_coordinate_handle, this->vertices.size() * sizeof(VertexAttributesPCN), &this->vertices[0]);
+	
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) (sizeof(vec3) * 2));	// Note offset - legacy of older code
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VertexAttributesPCN), (GLvoid *) (sizeof(vec3) * 1));	// Same
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void Sphere::TakeDown()

@@ -199,8 +199,8 @@ void DisplayFunc()
 
 		mat4 worldModelView = translate(mat4(1.0f), vec3(0.0f, 0.0f, -8.0f));
 		worldModelView = rotate(worldModelView, yRot, vec3(0.0f, 1.0f, 0.0f));
-		worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
 		worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
+		worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
 		
 		for (int i = 0; i < (int)walls.size(); i++)
 		{
@@ -309,28 +309,28 @@ int main(int argc, char * argv[])
 	float wall_l = (arena_width / 2.0f) + wall_t;	// Wall length. Need to add thickness
 
 	Wall* wall1 = new Wall();
-	if (!wall1->Initialize(vec3(0.0f, wall_l - wall_t, 0.0f), wall_l, wall_t, wall_t))
+	if (!wall1->Initialize(vec3(0.0f, wall_l - wall_t, 0.0f), wall_l, wall_t, 2*wall_t))
 	{
 		wall1->TakeDown();
 		delete wall1;
 		return 0;
 	}
 	Wall* wall2 = new Wall();
-	if (!wall2->Initialize(vec3(wall_l - wall_t, 0.0f, 0.0f), wall_t, wall_l, wall_t))
+	if (!wall2->Initialize(vec3(wall_l - wall_t, 0.0f, 0.0f), wall_t, wall_l, 2*wall_t))
 	{
 		wall2->TakeDown();
 		delete wall2;
 		return 0;
 	}
 	Wall* wall3 = new Wall();
-	if (!wall3->Initialize(vec3(0.0f, -wall_l + wall_t, 0.0f), wall_l, wall_t, wall_t))
+	if (!wall3->Initialize(vec3(0.0f, -wall_l + wall_t, 0.0f), wall_l, wall_t, 2*wall_t))
 	{
 		wall3->TakeDown();
 		delete wall3;
 		return 0;
 	}
 	Wall* wall4 = new Wall();
-	if (!wall4->Initialize(vec3(-wall_l + wall_t, 0.0f, 0.0f), wall_t, wall_l, wall_t))
+	if (!wall4->Initialize(vec3(-wall_l + wall_t, 0.0f, 0.0f), wall_t, wall_l, 2*wall_t))
 	{
 		wall4->TakeDown();
 		delete wall4;

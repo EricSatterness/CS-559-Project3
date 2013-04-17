@@ -16,6 +16,7 @@ bool Wall::Initialize(vec3 center, float width, float height, float depth)
 {
 	this->width = width;
 	this->height = height;
+	this->depth = depth;
 	// Make a wall
 	// Scale: 1 meter = 50 feet
 	//float wall_t = 0.5f;
@@ -30,7 +31,6 @@ bool Wall::Initialize(vec3 center, float width, float height, float depth)
 	wallBodyDef.position.Set(center.x, center.y);
 	this->body = world.CreateBody(&wallBodyDef);
 
-	//this->body->SetUserData("wall");
 	box2dUserData *u = new box2dUserData();
 	u->objectType = OBJECT_TYPE_WALL;
 	u->object = this;
@@ -52,7 +52,7 @@ void Wall::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::iv
 	b2Vec2 position = this->body->GetPosition();
 	mat4 m = translate(modelview, vec3(position.x, position.y, -0.5f));
 
-	this->cube->Draw(projection, scale(m, vec3(2*width, 2*height, 1.0f)), size);
+	this->cube->Draw(projection, scale(m, vec3(2*width, 2*height, 2*depth)), size);
 }
 
 void Wall::TakeDown()

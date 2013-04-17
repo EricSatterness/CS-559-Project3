@@ -14,7 +14,9 @@ class Sphere : public Object
 {
 public:
 	Sphere();
+	Sphere(glm::vec3 color);
 	bool Initialize(float radius, int slices, int stacks);
+	void ChangeColor(glm::vec3 color);
 	virtual void Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size);
 	void TakeDown();
 };

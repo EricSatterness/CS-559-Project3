@@ -6,7 +6,7 @@ using namespace glm;
 Player::Player()
 {
 	// OpenGL sphere that will represent the player
-	this->sphere = new Sphere();
+	this->sphere = new Sphere(vec3(0.0f, 0.3f, 1.0f));
 }
 
 bool Player::Initialize(float radius, int slices, int stacks)
@@ -17,7 +17,6 @@ bool Player::Initialize(float radius, int slices, int stacks)
 	playerDef.position.Set(0.0f,0.0f);
 	this->body = world.CreateBody(&playerDef);
 
-	//this->body->SetUserData("player");
 	box2dUserData *u = new box2dUserData();
 	u->objectType = OBJECT_TYPE_PLAYER;
 	u->object = this;

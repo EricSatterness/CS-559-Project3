@@ -2,10 +2,10 @@
 
 void BallContactListener::BeginContact(b2Contact* contact)
 {
-	//box2dUserData* udA = static_cast<box2dUserData*>(contact->GetFixtureA()->GetBody()->GetUserData());
-	//box2dUserData* udB = static_cast<box2dUserData*>(contact->GetFixtureB()->GetBody()->GetUserData());
-	box2dUserData* udA = (box2dUserData*)contact->GetFixtureA()->GetBody()->GetUserData();
-	box2dUserData* udB = (box2dUserData*)contact->GetFixtureB()->GetBody()->GetUserData();
+	box2dUserData* udA = static_cast<box2dUserData*>(contact->GetFixtureA()->GetBody()->GetUserData());
+	box2dUserData* udB = static_cast<box2dUserData*>(contact->GetFixtureB()->GetBody()->GetUserData());
+	/*box2dUserData* udA = (box2dUserData*)contact->GetFixtureA()->GetBody()->GetUserData();
+	box2dUserData* udB = (box2dUserData*)contact->GetFixtureB()->GetBody()->GetUserData();*/
 	b2Body* bodyA = contact->GetFixtureA()->GetBody();
 	b2Body* bodyB = contact->GetFixtureB()->GetBody();
 
