@@ -18,6 +18,17 @@ struct LightInfo
 extern LightInfo light1, light2, light3;
 extern float l3Intensity;
 
-// Variables forBox2D
+/* Variables for Box2D */
 extern b2World world;
 extern float box2d_scale;
+
+const int OBJECT_TYPE_PLAYER = 0;
+const int OBJECT_TYPE_MOSHBALL = 1;
+const int OBJECT_TYPE_WALL = 2;
+
+struct box2dUserData
+{
+	//bool collidedWithBall;	// True if object is a ball and has collided with the player or another ball
+	int objectType;
+	void* object;				// Pointer to the object that represents the box2D body
+};

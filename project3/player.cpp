@@ -17,6 +17,12 @@ bool Player::Initialize(float radius, int slices, int stacks)
 	playerDef.position.Set(0.0f,0.0f);
 	this->body = world.CreateBody(&playerDef);
 
+	//this->body->SetUserData("player");
+	box2dUserData *u = new box2dUserData();
+	u->objectType = OBJECT_TYPE_PLAYER;
+	u->object = this;
+	this->body->SetUserData(u);
+
 	b2CircleShape playerShape;
 	playerShape.m_radius = radius;
 
@@ -26,8 +32,6 @@ bool Player::Initialize(float radius, int slices, int stacks)
 	playerFixture.friction = 0.3f;
 	playerFixture.restitution = 0.2f;
 	this->body->CreateFixture(&playerFixture);
-
-	
 
 	if (!this->sphere->Initialize(radius, slices, stacks))
 		return false;

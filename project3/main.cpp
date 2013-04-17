@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Globals.h"
+#include "ballContactListener.h"
 #include "shader.h"
 #include "Sphere.h"
 #include "Cube.h"
@@ -21,7 +22,7 @@ using namespace glm;
 
 float xRot = 0.0f;
 float yRot = 0.0f; 
-float zoom = 0.05f;
+float zoom = 0.1f;
 
 #pragma region Data Structs
 struct WindowData
@@ -43,7 +44,7 @@ struct CameraData
 
 #pragma region Variables
 int numBalls = 10;			// Number of moshballs to create in the game
-unsigned int seed = 0;		// Seed for the sudo-random moshball positions
+unsigned int seed = 1000;	// Seed for the sudo-random moshball positions
 int ballSlices = 30;		// Number of slices to use when drawing the balls
 int ballStacks = 30;		// Number of stacks to use when drawing the balls
 float ballRadius = 1.0f;
@@ -105,10 +106,10 @@ void KeyboardFunc(unsigned char c, int x, int y)
 	{
 	case '=':
 	case '+':
-		zoom += .001;
+		zoom += .001f;
 		break;
 	case '-':
-		zoom -= .001;
+		zoom -= .001f;
 		break;
 	case '8':
 		xRot += 1;
@@ -181,7 +182,10 @@ void DisplayFunc()
 	if (window.window_handle == -1)
 		return;
 
+	// Instruct the world to perform a single step of simulation.
+	// It is generally best to keep the time step and iterations fixed.
 	world.Step(timeStep, velocityIterations, positionIterations);
+	player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 	
 	if (!window.debugBox2D)
 	{
@@ -191,13 +195,12 @@ void DisplayFunc()
 		glViewport(0, 0, window.size.x, window.size.y);
 		glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
-		glm::mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
-		glm::mat4 worldModelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -8.0f));
-		worldModelView = glm::rotate(worldModelView, yRot, glm::vec3(0.0f, 1.0f, 0.0f));
-		worldModelView = glm::rotate(worldModelView, xRot, glm::vec3(1.0f, 0.0f, 0.0f));
-		worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
+		mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
 
-		player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+		mat4 worldModelView = translate(mat4(1.0f), vec3(0.0f, 0.0f, -8.0f));
+		worldModelView = rotate(worldModelView, yRot, vec3(0.0f, 1.0f, 0.0f));
+		worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
+		worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
 		
 		for (int i = 0; i < (int)walls.size(); i++)
 		{
@@ -231,7 +234,7 @@ void DisplayFunc()
 
 		glMatrixMode(GL_MODELVIEW);
 		mat4 worldModelView = translate(mat4(1.0f), glm::vec3(0.0f, 0.0f, -8.0f));
-		worldModelView = scale(worldModelView, vec3(0.1f, 0.1f, 0.1f));
+		worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
 		glLoadMatrixf(value_ptr(worldModelView));
 
 
@@ -244,15 +247,10 @@ void DisplayFunc()
 			glVertex3f(-0.1f, 0.1f, 0.0f);
 		glEnd();
 
-		// Instruct the world to perform a single step of simulation.
-		// It is generally best to keep the time step and iterations fixed.
-		//world.Step(timeStep, velocityIterations, positionIterations);
 		world.DrawDebugData();
 
-		player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 		glutSwapBuffers();
 	}
-	player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 }
 // This is used to control the frame rate (60Hz).
 static void Timer(int)
@@ -292,8 +290,13 @@ int main(int argc, char * argv[])
 	B2_NOT_USED(argc);
 	B2_NOT_USED(argv);
 
+	// Initialize the debug draw methods to only draw shapes
 	debugDraw.SetFlags(b2Draw::e_shapeBit);
 	world.SetDebugDraw(&debugDraw);
+
+	// Add our contact listener to handle collisions between balls
+	BallContactListener ballContactListenerInstance;
+	world.SetContactListener(&ballContactListenerInstance);
 
 	// NOTES:
 	// Heights and widths in box2D are measured from the center of the shape (not end to end)

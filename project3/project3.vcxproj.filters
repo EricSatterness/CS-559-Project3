@@ -1,160 +1,52 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="Curtain.cpp" />
+    <ClCompile Include="cylinder.cpp" />
+    <ClCompile Include="disk.cpp" />
+    <ClCompile Include="Globals.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="moshball.cpp" />
+    <ClCompile Include="object.cpp" />
+    <ClCompile Include="player.cpp" />
+    <ClCompile Include="RectangularPrism.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Spring.cpp" />
+    <ClCompile Include="Square.cpp" />
+    <ClCompile Include="top.cpp" />
+    <ClCompile Include="Torus.cpp" />
+    <ClCompile Include="vertexattributes.cpp" />
+    <ClCompile Include="wall.cpp" />
+    <ClCompile Include="ballContactListener.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Curtain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cylinder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="disk.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Sphere.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Spring.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Square.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="top.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Torus.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vertexattributes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Globals.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Render.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <ClCompile Include="moshball.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wall.cpp">
-=======
-=======
->>>>>>> master
-    <ClCompile Include="RectangularPrism.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Cube.cpp">
-<<<<<<< HEAD
->>>>>>> Rendering Scene
-=======
->>>>>>> master
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="Cube.h" />
+    <ClInclude Include="Curtain.h" />
+    <ClInclude Include="cylinder.h" />
+    <ClInclude Include="disk.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="moshball.h" />
+    <ClInclude Include="object.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="RectangularPrism.h" />
+    <ClInclude Include="Render.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Spring.h" />
+    <ClInclude Include="Square.h" />
+    <ClInclude Include="top.h" />
+    <ClInclude Include="Torus.h" />
+    <ClInclude Include="vertexattributes.h" />
+    <ClInclude Include="wall.h" />
+    <ClInclude Include="ballContactListener.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Curtain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cylinder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="disk.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sphere.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Spring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Square.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="top.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Torus.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vertexattributes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Globals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Render.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <ClInclude Include="moshball.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wall.h">
-=======
-=======
->>>>>>> master
-    <ClInclude Include="RectangularPrism.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Cube.h">
-<<<<<<< HEAD
->>>>>>> Rendering Scene
-=======
->>>>>>> master
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="phongAds.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="phongAds.vert">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="solid_shader.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="solid_shader.vert">
-      <Filter>Source Files</Filter>
-    </None>
+    <None Include="phongAds.frag" />
+    <None Include="phongAds.vert" />
+    <None Include="solid_shader.frag" />
+    <None Include="solid_shader.vert" />
   </ItemGroup>
 </Project>

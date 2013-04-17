@@ -17,6 +17,12 @@ bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
 	ballDef.position.Set(center.x, center.y);
 	this->body = world.CreateBody(&ballDef);
 
+	//this->body->SetUserData("moshball");
+	box2dUserData *u = new box2dUserData();
+	u->objectType = OBJECT_TYPE_MOSHBALL;
+	u->object = this;
+	this->body->SetUserData(u);
+
 	b2CircleShape ballShape;
 	ballShape.m_radius = radius;
 
@@ -42,6 +48,11 @@ void Moshball::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm
 	mat4 m = translate(modelview, vec3(position.x, position.y, 0.0f));
 
 	this->sphere->Draw(projection, m, size);
+}
+
+void Moshball::startContact()
+{
+
 }
 
 void Moshball::TakeDown()

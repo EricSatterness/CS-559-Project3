@@ -30,6 +30,12 @@ bool Wall::Initialize(vec3 center, float width, float height, float depth)
 	wallBodyDef.position.Set(center.x, center.y);
 	this->body = world.CreateBody(&wallBodyDef);
 
+	//this->body->SetUserData("wall");
+	box2dUserData *u = new box2dUserData();
+	u->objectType = OBJECT_TYPE_WALL;
+	u->object = this;
+	this->body->SetUserData(u);
+
 	b2PolygonShape wallShape;
 	wallShape.SetAsBox(width, height);
 	this->body->CreateFixture(&wallShape, 1.0f);
