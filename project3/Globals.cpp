@@ -12,6 +12,9 @@ LightInfo light2 = {glm::vec3(-2.0f, 2.0f, 2.0f), glm::vec3(), 0};
 LightInfo light3 = {glm::vec3(0.0f, 1.25f, -3.0f), glm::vec3(), 1};
 float l3Intensity;
 
+// Use for ball timers
+float currentTime = 0.0f;
+float countDownTimerSeconds = 0.0f;
 
 // Define the gravity vector.
 b2Vec2 gravity(0.0f, 0.0f);

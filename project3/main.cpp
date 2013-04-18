@@ -44,10 +44,11 @@ struct CameraData
 
 #pragma region Variables
 int numBalls = 10;			// Number of moshballs to create in the game
-unsigned int seed = 1000;	// Seed for the sudo-random moshball positions
+unsigned int seed = 0;		// Seed for the sudo-random moshball positions
 int ballSlices = 30;		// Number of slices to use when drawing the balls
 int ballStacks = 30;		// Number of stacks to use when drawing the balls
 float ballRadius = 1.0f;
+int32 framePeriod = 16;
 
 /* Pointers */
 Shader shader;
@@ -57,7 +58,6 @@ vector<Moshball *> moshballs;
 
 /* Box2D Variables */
 DebugDraw debugDraw;
-int32 framePeriod = 16;
 float32 speed = 30.0f;
 
 // Prepare for simulation. Typically we use a time step of 1/60 of a
@@ -182,6 +182,8 @@ void DisplayFunc()
 	if (window.window_handle == -1)
 		return;
 
+	currentTime = float(glutGet(GLUT_ELAPSED_TIME)) / 1000.0f;
+
 	// Instruct the world to perform a single step of simulation.
 	// It is generally best to keep the time step and iterations fixed.
 	world.Step(timeStep, velocityIterations, positionIterations);
@@ -252,15 +254,24 @@ void DisplayFunc()
 		glutSwapBuffers();
 	}
 }
+
 // This is used to control the frame rate (60Hz).
 static void Timer(int)
 {
+	// Check timers of balls
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		moshballs[i]->CheckTimer(currentTime);
+	}
+
 	//glutSetWindow(mainWindow);
 	glutPostRedisplay();
 	glutTimerFunc(framePeriod, Timer, 0);
 }
 int main(int argc, char * argv[])
 {
+	countDownTimerSeconds = 5.0f;
+
 	glutInit(&argc, argv);
 	glutInitWindowSize(1024, 1024);
 	glutInitWindowPosition(20, 20);

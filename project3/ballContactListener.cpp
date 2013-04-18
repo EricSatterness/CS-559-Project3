@@ -12,11 +12,11 @@ void BallContactListener::BeginContact(b2Contact* contact)
 	// When a ball collides with the player handle the collision
 	if (udA->objectType == OBJECT_TYPE_MOSHBALL && udB->objectType == OBJECT_TYPE_PLAYER)
 	{
-		static_cast<Moshball*>(udA->object)->startContact();
+		static_cast<Moshball*>(udA->object)->StartContact();
 	}
 
 	else if (udA->objectType == OBJECT_TYPE_PLAYER && udB->objectType == OBJECT_TYPE_MOSHBALL)
 	{
-		static_cast<Moshball*>(udB->object)->startContact();
+		static_cast<Moshball*>(udB->object)->StartContact();
 	}
 }

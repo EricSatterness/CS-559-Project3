@@ -7,6 +7,13 @@ Moshball::Moshball()
 {
 	// OpenGL sphere that will represent the ball
 	this->sphere = new Sphere(vec3(0.27f, 1.0f, 0.0f));
+	this->startTime = -numeric_limits<float>::max();
+	this->displayTimer = false;
+
+	// Don't use a timer or threading. We already have a timer: the display method
+	//Start the timer
+	//this->Timer();
+	//CreateThread(NULL, 0, this->Timer, 
 }
 
 bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
@@ -49,9 +56,9 @@ void Moshball::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm
 	this->sphere->Draw(projection, m, size);
 }
 
-void Moshball::startContact()
+void Moshball::StartContact()
 {
-	// Change the sphere's color
+	// Change the sphere's color and reset the timer
 
 	// This works but it slows down the rendering. Visually, we see the delay
 	/*this->sphere->TakeDown();
@@ -59,10 +66,47 @@ void Moshball::startContact()
 	this->sphere = new Sphere(vec3(1.0f, 0.27f, 0.0f));
 	this->sphere->Initialize(1.0f, 30, 30);*/
 
-	this->sphere->ChangeColor(vec3(1.0f, 0.27f, 0.0f));
+	this->startTime = currentTime;
 
-	// Reset the timer
+	if (this->displayTimer == false)
+	{
+		this->sphere->ChangeColor(vec3(1.0f, 0.27f, 0.0f));
+		this->displayTimer = true;
+	}
+}
 
+//DWORD WINAPI Moshball::Timer(LPVOID lpParameter)
+//{
+//	// Decrement the counter every 1 second
+//	time_t timer;
+//
+//	while(true)
+//	{
+//		time(&timer);
+//		double seconds = difftime(timer, this->timeStart);
+//
+//		if (seconds < 4 && seconds > 0)
+//		{
+//			// Display timer
+//		}
+//		else if (seconds <= 0)
+//		{
+//			// Reset the color
+//			this->sphere->ChangeColor(vec3(0.27f, 1.0f, 0.0f));
+//		}
+//
+//		//Sleep(1000);
+//	}
+//}
+
+void Moshball::CheckTimer(float currentTime)
+{
+	// Only change the variables once
+	if ((currentTime - this->startTime) > countDownTimerSeconds && this->displayTimer == true)
+	{
+		this->sphere->ChangeColor(vec3(0.27f, 1.0f, 0.0f));
+		this->displayTimer = false;
+	}
 }
 
 void Moshball::TakeDown()

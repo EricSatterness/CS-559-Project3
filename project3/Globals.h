@@ -18,6 +18,10 @@ struct LightInfo
 extern LightInfo light1, light2, light3;
 extern float l3Intensity;
 
+// Use for ball timers
+extern float currentTime;
+extern float countDownTimerSeconds;
+
 /* Variables for Box2D */
 extern b2World world;
 extern float box2d_scale;
