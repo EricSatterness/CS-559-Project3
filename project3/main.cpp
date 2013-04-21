@@ -167,14 +167,17 @@ void SpecialFunc(int key, int x, int y)
 	}
 }
 
+// Grabs the mouse position whenever it moves
 void MouseMoveFunc(int x, int y)
 {
 	window.mouse = vec2((float)x, (float)y);
 }
 
+// Handles the player movement
 void mouseControlsRoutine()
 {
-	// Handle the mouse controls
+	// X offset rotates the player
+	// Y offset moves the player forward/backward
 	float dx = window.mouse.x - window.origin.x;
 	float dy = window.mouse.y - window.origin.y;
 	
@@ -196,6 +199,7 @@ void mouseControlsRoutine()
 		player->body->SetLinearVelocity(b2Vec2(-velocity.x, velocity.y));
 }
 
+// Draws the instructions. We will take these off once we get the god-view in place
 void DisplayInstructions()
 {
 	if (window.window_handle == -1)
@@ -224,6 +228,7 @@ void DisplayInstructions()
 	}
 }
 
+// Draws the crosshairs
 void DisplayCrosshairs()
 {
 	if (window.window_handle == -1)
@@ -249,6 +254,41 @@ void DisplayCrosshairs()
 		glVertex2f(0.0f, 1.0f);
 		glVertex2f(0.0f, -1.0f);
 	glEnd();
+}
+
+// Adds the text showing the time elapsed and the targets remaining
+void DisplayStats()
+{
+	if (window.window_handle == -1)
+		return;
+
+	char time [16], targets [16];
+	sprintf(time, "Time: %.2f", currentTime);
+	sprintf(targets, "Targets: %d", targetsRemaining);
+
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslated(window.size.x - 300, 30, -5.5);
+	glScaled(0.085, 0.085, 1.0);
+	glLineWidth(1.0);
+
+	glPushMatrix();
+	glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) time);
+	glPopMatrix();
+	glTranslated(1700, 0, 0);
+
+	glPushMatrix();
+	glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) targets);
+	glPopMatrix();
 }
 
 void renderFirstPersonScene()
@@ -382,6 +422,7 @@ void DisplayFunc()
 	}
 
 	DisplayCrosshairs();
+	DisplayStats();
 	DisplayInstructions();
 
 	glutSwapBuffers();
@@ -403,7 +444,7 @@ static void Timer(int)
 
 int main(int argc, char * argv[])
 {
-	countDownTimerSeconds = 5.0f;
+	countDownTimerSeconds = 25.0f;
 
 	glutInit(&argc, argv);
 	glutInitWindowSize(1024, 1024);
@@ -439,6 +480,10 @@ int main(int argc, char * argv[])
 	window.instructions.push_back("F1                 Switch between view modes");
 	window.instructions.push_back("X                  Exit");
 	
+
+
+	targetsRemaining = numBalls;
+
 	/* Box2D testing */
 	B2_NOT_USED(argc);
 	B2_NOT_USED(argv);

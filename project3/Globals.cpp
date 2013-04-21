@@ -15,6 +15,7 @@ float l3Intensity;
 // Use for ball timers
 float currentTime = 0.0f;
 float countDownTimerSeconds = 0.0f;
+int targetsRemaining = 0;
 
 // Define the gravity vector.
 b2Vec2 gravity(0.0f, 0.0f);

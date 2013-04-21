@@ -72,6 +72,7 @@ void Moshball::StartContact()
 	{
 		this->sphere->ChangeColor(vec3(1.0f, 0.27f, 0.0f));
 		this->displayTimer = true;
+		targetsRemaining -= 1;
 	}
 }
 
@@ -106,6 +107,7 @@ void Moshball::CheckTimer(float currentTime)
 	{
 		this->sphere->ChangeColor(vec3(0.27f, 1.0f, 0.0f));
 		this->displayTimer = false;
+		targetsRemaining += 1;
 	}
 }
 

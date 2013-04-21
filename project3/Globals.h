@@ -21,6 +21,7 @@ extern float l3Intensity;
 // Use for ball timers
 extern float currentTime;
 extern float countDownTimerSeconds;
+extern int targetsRemaining;
 
 /* Variables for Box2D */
 extern b2World world;
