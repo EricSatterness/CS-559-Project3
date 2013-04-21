@@ -50,7 +50,7 @@ void Wall::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::iv
 {
 	// Translate modelview based on box2D position
 	b2Vec2 position = this->body->GetPosition();
-	mat4 m = translate(modelview, vec3(position.x, position.y, -0.5f));
+	mat4 m = translate(modelview, vec3(position.x, position.y, 0.0f));
 
 	this->cube->Draw(projection, scale(m, vec3(2*width, 2*height, 2*depth)), size);
 }

@@ -22,7 +22,7 @@ using namespace glm;
 
 float xRot = 0.0f;
 float yRot = 0.0f; 
-float zoom = 0.1f;
+float zoom = 0.05f;
 
 #pragma region Data Structs
 struct WindowData
@@ -33,7 +33,7 @@ struct WindowData
 	mat4 projection_matrix, modelview_matrix;
 	vector<string> instructions;
 	bool wireframe;
-	bool debugBox2D;
+	int sceneIndex;
 } window;
 
 struct CameraData
@@ -43,7 +43,7 @@ struct CameraData
 #pragma endregion
 
 #pragma region Variables
-int numBalls = 10;			// Number of moshballs to create in the game
+int numBalls = 15;			// Number of moshballs to create in the game
 unsigned int seed = 0;		// Seed for the sudo-random moshball positions
 int ballSlices = 30;		// Number of slices to use when drawing the balls
 int ballStacks = 30;		// Number of stacks to use when drawing the balls
@@ -75,7 +75,7 @@ void CloseFunc()
 
 	if (player != NULL)
 	{
-		//player->TakeDown();
+		player->TakeDown();
 		delete player;
 	}
 
@@ -83,12 +83,22 @@ void CloseFunc()
 	{
 		if (moshballs[i] != NULL)
 		{
-			//moshballs[i]->TakeDown();
+			moshballs[i]->TakeDown();
 			delete moshballs[i];
 		}
 
 	}
+
+	for (int i = 0; i < (int)walls.size(); i++)
+	{
+		if (walls[i] != NULL)
+		{
+			walls[i]->TakeDown();
+			delete walls[i];
+		}
+	}
 }
+
 void ReshapeFunc(int w, int h)
 {
 	if (window.window_handle != -1 &&  h > 0)
@@ -97,6 +107,7 @@ void ReshapeFunc(int w, int h)
 		window.window_aspect = float(w) / float(h);
 	}
 }
+
 void KeyboardFunc(unsigned char c, int x, int y)
 {
 	if (window.window_handle == -1)
@@ -123,15 +134,13 @@ void KeyboardFunc(unsigned char c, int x, int y)
 	case '4':
 		yRot -= 1;
 		break;
-	case 'd':
-		window.debugBox2D = !window.debugBox2D;
-		break;
 	case 'x':
 	case 27:
 		glutLeaveMainLoop();
 		return;
 	}
 }
+
 void SpecialFunc(int key, int x, int y)
 {
 	switch(key)
@@ -148,8 +157,110 @@ void SpecialFunc(int key, int x, int y)
 		case GLUT_KEY_DOWN:
 			player->body->SetLinearVelocity(b2Vec2(0.0f, -speed));
 			break;
+		// Change the rendered scene
+		case GLUT_KEY_F1:
+			window.sceneIndex = ++window.sceneIndex % 3;
+			break;
 	}
 }
+
+void renderFirstPersonScene()
+{
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
+
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 110.0f);
+
+	b2Vec2 pos = player->body->GetPosition();
+
+	mat4 worldModelView = mat4(1.0f);
+	worldModelView = rotate(worldModelView, -90.0f, vec3(1.0f, 0.0f, 0.0f));
+	worldModelView = translate(worldModelView, vec3(-pos.x, -pos.y, 0.0f));
+		
+	for (int i = 0; i < (int)walls.size(); i++)
+	{
+		walls[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+
+	player->Draw(projection_matrix, worldModelView, window.size);
+
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+
+	glutSwapBuffers();
+}
+
+void renderThirdPersonScene()
+{
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
+
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
+
+	mat4 worldModelView = translate(mat4(1.0f), vec3(0.0f, 0.0f, -8.0f));
+	worldModelView = rotate(worldModelView, yRot, vec3(0.0f, 1.0f, 0.0f));
+	worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
+	worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
+		
+	for (int i = 0; i < (int)walls.size(); i++)
+	{
+		walls[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+
+	player->Draw(projection_matrix, worldModelView, window.size);
+
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+
+	glutSwapBuffers();
+}
+
+void renderBox2dDebugScene()
+{
+	/* Box2D debug mode */
+	if (window.window_handle == -1)
+		return;
+
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
+
+	glMatrixMode(GL_PROJECTION);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
+	glLoadMatrixf(value_ptr(projection_matrix));
+
+	glMatrixMode(GL_MODELVIEW);
+	mat4 worldModelView = translate(mat4(1.0f), glm::vec3(0.0f, 0.0f, -8.0f));
+	worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
+	glLoadMatrixf(value_ptr(worldModelView));
+
+
+	// Draw a square so I can see the origin (just to make position estimation a little easier)
+	glColor3f(1,1,1);
+	glBegin(GL_QUADS);
+		glVertex3f(-0.1f, -0.1f, 0.0f);
+		glVertex3f(0.1f, -0.1f, 0.0f);
+		glVertex3f(0.1f, 0.1f, 0.0f);
+		glVertex3f(-0.1f, 0.1f, 0.0f);
+	glEnd();
+
+	world.DrawDebugData();
+
+	glutSwapBuffers();
+}
+
 void DisplayInstructions()
 {
 	if (window.window_handle == -1)
@@ -177,6 +288,7 @@ void DisplayInstructions()
 		glTranslated(0, -150, 0);
 	}
 }
+
 void DisplayFunc()
 {
 	if (window.window_handle == -1)
@@ -189,69 +301,18 @@ void DisplayFunc()
 	world.Step(timeStep, velocityIterations, positionIterations);
 	player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 	
-	if (!window.debugBox2D)
+	// Determine which scene to render on the screen
+	switch (window.sceneIndex)
 	{
-		glEnable(GL_DEPTH_TEST);
-		glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, window.size.x, window.size.y);
-		glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
-
-		mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
-
-		mat4 worldModelView = translate(mat4(1.0f), vec3(0.0f, 0.0f, -8.0f));
-		worldModelView = rotate(worldModelView, yRot, vec3(0.0f, 1.0f, 0.0f));
-		worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
-		worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
-		
-		for (int i = 0; i < (int)walls.size(); i++)
-		{
-			walls[i]->Draw(projection_matrix, worldModelView, window.size);
-		}
-
-		player->Draw(projection_matrix, worldModelView, window.size);
-
-		for (int i = 0; i < (int)moshballs.size(); i++)
-		{
-			moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
-		}
-
-		glutSwapBuffers();
-	}
-	else
-	{
-		/* Box2D debug mode */
-		if (window.window_handle == -1)
-			return;
-
-		glEnable(GL_DEPTH_TEST);
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, window.size.x, window.size.y);
-		glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
-
-		glMatrixMode(GL_PROJECTION);
-		mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
-		glLoadMatrixf(value_ptr(projection_matrix));
-
-		glMatrixMode(GL_MODELVIEW);
-		mat4 worldModelView = translate(mat4(1.0f), glm::vec3(0.0f, 0.0f, -8.0f));
-		worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
-		glLoadMatrixf(value_ptr(worldModelView));
-
-
-		// Draw a square so I can see the origin (just to make position estimation a little easier)
-		glColor3f(1,1,1);
-		glBegin(GL_QUADS);
-			glVertex3f(-0.1f, -0.1f, 0.0f);
-			glVertex3f(0.1f, -0.1f, 0.0f);
-			glVertex3f(0.1f, 0.1f, 0.0f);
-			glVertex3f(-0.1f, 0.1f, 0.0f);
-		glEnd();
-
-		world.DrawDebugData();
-
-		glutSwapBuffers();
+	case 0:
+		renderFirstPersonScene();
+		break;
+	case 1:
+		renderThirdPersonScene();
+		break;
+	case 2:
+		renderBox2dDebugScene();
+		break;
 	}
 }
 
@@ -268,6 +329,7 @@ static void Timer(int)
 	glutPostRedisplay();
 	glutTimerFunc(framePeriod, Timer, 0);
 }
+
 int main(int argc, char * argv[])
 {
 	countDownTimerSeconds = 5.0f;
@@ -314,8 +376,8 @@ int main(int argc, char * argv[])
 	// Friction will only apply when objects collide. In order to slow a ball down, we need to apply damping to the velocity. The body has a linear damping function but we may want to implement our own non-linear damping.
 
 	// Scale: 1 meter = 50 feet; Want player area to be 5280sqft
-	//float arena_width = 105.6f;
-	float arena_width = 50.0f;
+	float arena_width = 105.6f;
+	//float arena_width = 50.0f;
 	float wall_t = 0.5f;							// Wall thickness
 	float wall_l = (arena_width / 2.0f) + wall_t;	// Wall length. Need to add thickness
 
