@@ -177,7 +177,7 @@ void mouseControlsRoutine()
 	// Handle the mouse controls
 	float dx = window.mouse.x - window.origin.x;
 	float dy = window.mouse.y - window.origin.y;
-
+	
 	// Values of non-linear functions chosen from experimentation
 	float rotationOffset = pow(abs(dx), 1.95f) / 100000.0f;
 	if (dx < 0)
@@ -196,10 +196,66 @@ void mouseControlsRoutine()
 		player->body->SetLinearVelocity(b2Vec2(-velocity.x, velocity.y));
 }
 
+void DisplayInstructions()
+{
+	if (window.window_handle == -1)
+		return;
+
+	vector<string> * s = &window.instructions;
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslated(10, 15 * s->size(), -5.5);
+	glScaled(0.1, 0.1, 1.0);
+	glLineWidth(1.0);
+	for (auto i = s->begin(); i < s->end(); ++i)
+	{
+		glPushMatrix();
+		glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) (*i).c_str());
+		glPopMatrix();
+		glTranslated(0, -150, 0);
+	}
+}
+
+void DisplayCrosshairs()
+{
+	if (window.window_handle == -1)
+		return;
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
+	glViewport(0, 0, window.size.x, window.size.y);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslated(window.origin.x, window.origin.y, -5.5);
+	glScaled(10, 10, 10);
+	glLineWidth(2.0);
+
+	glBegin(GL_LINES);
+		glVertex2f(1.0f, 0.0f);
+		glVertex2f(-1.0f, 0.0f);
+		glVertex2f(0.0f, 1.0f);
+		glVertex2f(0.0f, -1.0f);
+	glEnd();
+}
+
 void renderFirstPersonScene()
 {
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	//glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
@@ -227,13 +283,14 @@ void renderFirstPersonScene()
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
-	glutSwapBuffers();
+	//glutSwapBuffers();
 }
 
 void renderThirdPersonScene()
 {
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	//glClearColor(0.79f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
@@ -257,7 +314,7 @@ void renderThirdPersonScene()
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
-	glutSwapBuffers();
+	//glutSwapBuffers();
 }
 
 void renderBox2dDebugScene()
@@ -293,35 +350,7 @@ void renderBox2dDebugScene()
 
 	world.DrawDebugData();
 
-	glutSwapBuffers();
-}
-
-void DisplayInstructions()
-{
-	if (window.window_handle == -1)
-		return;
-
-	vector<string> * s = &window.instructions;
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
-	glViewport(0, 0, window.size.x, window.size.y);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslated(10, 15 * s->size(), -5.5);
-	glScaled(0.1, 0.1, 1.0);
-	glLineWidth(1.0);
-	for (auto i = s->begin(); i < s->end(); ++i)
-	{
-		glPushMatrix();
-		glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) (*i).c_str());
-		glPopMatrix();
-		glTranslated(0, -150, 0);
-	}
+	//glutSwapBuffers();
 }
 
 void DisplayFunc()
@@ -351,6 +380,11 @@ void DisplayFunc()
 		renderBox2dDebugScene();
 		break;
 	}
+
+	DisplayCrosshairs();
+	DisplayInstructions();
+
+	glutSwapBuffers();
 }
 
 // This is used to control the frame rate (60Hz).
@@ -396,6 +430,14 @@ int main(int argc, char * argv[])
 		return 0;
 	}
 	currShader = &shader;
+
+	window.instructions.push_back("Project 3 - UW-Madison - CS 559");
+	window.instructions.push_back("Eric Satterness and Chelsey Denton");
+	window.instructions.push_back("");
+	window.instructions.push_back("8/2/6/4            Rotate god-view camera");
+	window.instructions.push_back("+/-                Zoom god-view camera in/out");
+	window.instructions.push_back("F1                 Switch between view modes");
+	window.instructions.push_back("X                  Exit");
 	
 	/* Box2D testing */
 	B2_NOT_USED(argc);
