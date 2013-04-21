@@ -1,6 +1,7 @@
 #pragma once
 #include <Box2D/Box2D.h>
 #include "Globals.h"
+#include "player.h"
 #include "moshball.h"
 
 // Override the contact listener so we can handle the case where a ball collides with the player

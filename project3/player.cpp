@@ -11,6 +11,8 @@ Player::Player()
 
 bool Player::Initialize(float radius, int slices, int stacks)
 {
+	this->rotation = 0.0f;
+
 	// Make the player's Box2D circle
 	b2BodyDef playerDef;
 	playerDef.type = b2_dynamicBody;
@@ -45,6 +47,11 @@ void Player::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::
 	mat4 m = translate(modelview, vec3(position.x, position.y, 0.0f));
 
 	this->sphere->Draw(projection, m, size);
+}
+
+void Player::StartContact()
+{
+
 }
 
 void Player::TakeDown()

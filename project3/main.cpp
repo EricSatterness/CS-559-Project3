@@ -30,6 +30,7 @@ struct WindowData
 	int window_handle;
 	ivec2 size;
 	float window_aspect;
+	vec2 origin, mouse;
 	mat4 projection_matrix, modelview_matrix;
 	vector<string> instructions;
 	bool wireframe;
@@ -39,7 +40,7 @@ struct WindowData
 struct CameraData
 {
 
-} mainCamera;
+};
 #pragma endregion
 
 #pragma region Variables
@@ -105,6 +106,8 @@ void ReshapeFunc(int w, int h)
 	{
 		window.size = ivec2(w, h);
 		window.window_aspect = float(w) / float(h);
+
+		window.origin = vec2((float)window.size.x / 2.0f, (float)window.size.y / 2.0f);
 	}
 }
 
@@ -164,6 +167,35 @@ void SpecialFunc(int key, int x, int y)
 	}
 }
 
+void MouseMoveFunc(int x, int y)
+{
+	window.mouse = vec2((float)x, (float)y);
+}
+
+void mouseControlsRoutine()
+{
+	// Handle the mouse controls
+	float dx = window.mouse.x - window.origin.x;
+	float dy = window.mouse.y - window.origin.y;
+
+	// Values of non-linear functions chosen from experimentation
+	float rotationOffset = pow(abs(dx), 1.95f) / 100000.0f;
+	if (dx < 0)
+		player->rotation = player->rotation - rotationOffset;
+	else
+		player->rotation = player->rotation + rotationOffset;
+
+	float speed = pow(abs(dy), 1.7f) / 2000.0f;
+	mat4 velocityMat = mat4();
+	velocityMat = rotate(velocityMat, player->rotation, vec3(0.0f, 0.0f, 1.0f));
+	vec4 velocity = velocityMat*vec4(speed, 0.0f, 0.0f, 1.0f);
+	
+	if (dy < 0)
+		player->body->SetLinearVelocity(b2Vec2(velocity.x, -velocity.y));
+	else
+		player->body->SetLinearVelocity(b2Vec2(-velocity.x, velocity.y));
+}
+
 void renderFirstPersonScene()
 {
 	glEnable(GL_DEPTH_TEST);
@@ -177,7 +209,10 @@ void renderFirstPersonScene()
 	b2Vec2 pos = player->body->GetPosition();
 
 	mat4 worldModelView = mat4(1.0f);
+	// Rotate so that we look at positive Y-axis and make positive Z-axis the up vector (game is played in XY plane)
 	worldModelView = rotate(worldModelView, -90.0f, vec3(1.0f, 0.0f, 0.0f));
+	// X-axis is considered 0 degrees for the player's rotation. So start by looking at positive X-axis and then rotate from there
+	worldModelView = rotate(worldModelView, player->rotation + 90.0f, vec3(0.0f, 0.0f, 1.0f));
 	worldModelView = translate(worldModelView, vec3(-pos.x, -pos.y, 0.0f));
 		
 	for (int i = 0; i < (int)walls.size(); i++)
@@ -185,7 +220,7 @@ void renderFirstPersonScene()
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
-	player->Draw(projection_matrix, worldModelView, window.size);
+	//player->Draw(projection_matrix, worldModelView, window.size);
 
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
@@ -294,12 +329,14 @@ void DisplayFunc()
 	if (window.window_handle == -1)
 		return;
 
+	mouseControlsRoutine();
+
 	currentTime = float(glutGet(GLUT_ELAPSED_TIME)) / 1000.0f;
 
 	// Instruct the world to perform a single step of simulation.
 	// It is generally best to keep the time step and iterations fixed.
 	world.Step(timeStep, velocityIterations, positionIterations);
-	player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+	//player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 	
 	// Determine which scene to render on the screen
 	switch (window.sceneIndex)
@@ -344,6 +381,7 @@ int main(int argc, char * argv[])
 	glutReshapeFunc(ReshapeFunc);
 	glutKeyboardFunc(KeyboardFunc);
 	glutSpecialFunc(SpecialFunc);
+	glutPassiveMotionFunc(MouseMoveFunc);
 	glutCloseFunc(CloseFunc);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	
