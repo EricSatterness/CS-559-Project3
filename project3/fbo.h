@@ -15,6 +15,8 @@ public:
 	bool Initialize(glm::ivec2 size, int number_of_color_attachments = 1, bool allocate_depth_buffer = true);
 	void TakeDown();
 
+	int boundIndex;
+
 	glm::ivec2 size;
 	int number_of_color_attachments;
 	GLuint framebuffer_handle;

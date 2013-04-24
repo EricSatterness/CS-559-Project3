@@ -16,6 +16,9 @@
 #include "wall.h"
 #include "player.h"
 #include "moshball.h"
+#include "ImageTexture.h"
+#include "Skybox.h"
+#include "fbo.h"
 
 using namespace std;
 using namespace glm;
@@ -23,6 +26,11 @@ using namespace glm;
 float xRot = 0.0f;
 float yRot = 0.0f; 
 float zoom = 0.05f;
+ImageTexture targetTexture;
+Skybox skybox;
+FrameBufferObject fbo;
+Shader phongShader, targetShader, jumbotronShader;
+Cube *jumbotronCube;
 
 #pragma region Data Structs
 struct WindowData
@@ -52,7 +60,6 @@ float ballRadius = 1.0f;
 int32 framePeriod = 16;
 
 /* Pointers */
-Shader shader;
 vector<Wall *> walls;
 Player* player;
 vector<Moshball *> moshballs;
@@ -108,6 +115,10 @@ void ReshapeFunc(int w, int h)
 		window.window_aspect = float(w) / float(h);
 
 		window.origin = vec2((float)window.size.x / 2.0f, (float)window.size.y / 2.0f);
+
+		fbo.TakeDown();
+		if(!fbo.Initialize(window.size, 2))
+			return;
 	}
 }
 
@@ -118,6 +129,12 @@ void KeyboardFunc(unsigned char c, int x, int y)
 
 	switch (c)
 	{
+	case 's':
+		skybox.NextTexture();
+		break;
+	case 'q':
+		window.sceneIndex = ++window.sceneIndex % 3;
+		break;
 	case '=':
 	case '+':
 		zoom += .001f;
@@ -300,7 +317,7 @@ void renderFirstPersonScene()
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 110.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 200.0f);
 
 	b2Vec2 pos = player->body->GetPosition();
 
@@ -311,6 +328,9 @@ void renderFirstPersonScene()
 	worldModelView = rotate(worldModelView, player->rotation + 90.0f, vec3(0.0f, 0.0f, 1.0f));
 	worldModelView = translate(worldModelView, vec3(-pos.x, -pos.y, 0.0f));
 		
+	skybox.Draw(projection_matrix, worldModelView, window.size);
+
+	currShader = &phongShader;
 	for (int i = 0; i < (int)walls.size(); i++)
 	{
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
@@ -318,11 +338,19 @@ void renderFirstPersonScene()
 
 	//player->Draw(projection_matrix, worldModelView, window.size);
 
+	targetTexture.Use();
+	currShader = &targetShader;
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
+	if(fbo.boundIndex == 1)
+		fbo.Use(0);
+	else
+		fbo.Use(1);
+	currShader = &jumbotronShader;
+	jumbotronCube->Draw(projection_matrix, glm::scale(worldModelView, vec3(5.0f)), window.size);
 	//glutSwapBuffers();
 }
 
@@ -335,13 +363,16 @@ void renderThirdPersonScene()
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 200.0f);
 
 	mat4 worldModelView = translate(mat4(1.0f), vec3(0.0f, 0.0f, -8.0f));
 	worldModelView = rotate(worldModelView, yRot, vec3(0.0f, 1.0f, 0.0f));
 	worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
 	worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
 		
+	skybox.Draw(projection_matrix, worldModelView, window.size);
+
+	currShader = &phongShader;
 	for (int i = 0; i < (int)walls.size(); i++)
 	{
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
@@ -349,6 +380,8 @@ void renderThirdPersonScene()
 
 	player->Draw(projection_matrix, worldModelView, window.size);
 
+	targetTexture.Use();
+	currShader = &targetShader;
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
@@ -370,7 +403,7 @@ void renderBox2dDebugScene()
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
 	glMatrixMode(GL_PROJECTION);
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 20.0f);
 	glLoadMatrixf(value_ptr(projection_matrix));
 
 	glMatrixMode(GL_MODELVIEW);
@@ -393,6 +426,7 @@ void renderBox2dDebugScene()
 	//glutSwapBuffers();
 }
 
+typedef void (*RenderFunction)();
 void DisplayFunc()
 {
 	if (window.window_handle == -1)
@@ -408,18 +442,32 @@ void DisplayFunc()
 	//player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 	
 	// Determine which scene to render on the screen
+	RenderFunction render;
 	switch (window.sceneIndex)
 	{
 	case 0:
-		renderFirstPersonScene();
+		render = renderFirstPersonScene;
 		break;
 	case 1:
-		renderThirdPersonScene();
+		render = renderThirdPersonScene;
 		break;
 	case 2:
-		renderBox2dDebugScene();
+		render = renderBox2dDebugScene;
 		break;
 	}
+	fbo.Bind(1);
+	render();
+	fbo.Unbind();
+
+	fbo.Bind(0);
+	render();
+	fbo.Unbind();
+
+	fbo.Bind(1);
+	render();
+	fbo.Unbind();
+
+	render();
 
 	DisplayCrosshairs();
 	DisplayStats();
@@ -466,11 +514,23 @@ int main(int argc, char * argv[])
 		return 0;
 	}
 
-	if(!shader.Initialize("phongAds.vert", "phongAds.frag"))
-	{
+	if(!phongShader.Initialize("phongAds.vert", "phongAds.frag"))
 		return 0;
-	}
-	currShader = &shader;
+	if(!targetShader.Initialize("TargetShader.vert", "TargetShader.frag"))
+		return 0;
+	if(!targetTexture.Initialize("earth.jpg"))
+		return 0;
+	if(!jumbotronShader.Initialize("JumboTronCube.vert", "JumboTronCube.frag"))
+		return 0;
+	if(!skybox.Initialize(150.0f))
+		return 0;
+	if(!fbo.Initialize(ivec2(2,2), 2))
+		return 0;
+	currShader = &phongShader;
+
+	jumbotronCube = new Cube();
+	if(!jumbotronCube->Initialize(1.0f))
+		return 0;
 
 	window.instructions.push_back("Project 3 - UW-Madison - CS 559");
 	window.instructions.push_back("Eric Satterness and Chelsey Denton");

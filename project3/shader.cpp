@@ -36,6 +36,8 @@ Shader::Shader()
 	this->on3_handle = BAD_GL_VALUE;
 	this->l3_percent_handle = BAD_GL_VALUE;
 
+	this->tex_handle = BAD_GL_VALUE;
+
 
 	this->seeThrough = 0;
 	this->Material_ADSS = vec4(.5f, .7f, .5f, 20.0f);
@@ -64,6 +66,8 @@ void Shader::CommonSetup(const float time, const GLint * size, const GLfloat * p
 	glUniform1i(this->on1_handle, light1.on);
 	glUniform1i(this->on2_handle, light2.on);
 	glUniform1i(this->on3_handle, light3.on);
+
+	glUniform1i(this->tex_handle, 0);
 }
 
 void Shader::Use()
@@ -134,6 +138,8 @@ bool Shader::Initialize(char * vertex_shader_file, char * fragment_shader_file)
 	this->on2_handle = glGetUniformLocation(this->program_id, (const GLchar *) "on_2_in");
 	this->on3_handle = glGetUniformLocation(this->program_id, (const GLchar *) "on_3_in");
 	this->l3_percent_handle = glGetUniformLocation(this->program_id, (const GLchar *) "light3_percent");
+
+	this->tex_handle = glGetUniformLocation(this->program_id, (const GLchar *) "Tex1");
 
 	glUseProgram(0);
 

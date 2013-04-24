@@ -16,6 +16,7 @@ FrameBufferObject::FrameBufferObject()
 	this->framebuffer_handle = GLuint(-1);
 	this->depth_buffer_handle = GLuint(-1);
 	this->texture_handles = NULL;
+	boundIndex = -1;
 }
 
 void FrameBufferObject::Bind(int color_attachment_index)
@@ -24,6 +25,7 @@ void FrameBufferObject::Bind(int color_attachment_index)
 	assert(this->framebuffer_handle != GLuint(-1));
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer_handle);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0 + color_attachment_index);
+	boundIndex = color_attachment_index;
 }
 void FrameBufferObject::Use(int color_attachment_index)
 {
@@ -33,6 +35,7 @@ void FrameBufferObject::Use(int color_attachment_index)
 }
 void FrameBufferObject::Unbind()
 {
+	boundIndex = -1;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

@@ -18,6 +18,9 @@ struct LightInfo
 extern LightInfo light1, light2, light3;
 extern float l3Intensity;
 
+bool CheckGLErrors(const char * caller);
+const char * FramebufferCompletenessError(GLint error_code);
+
 // Use for ball timers
 extern float currentTime;
 extern float countDownTimerSeconds;

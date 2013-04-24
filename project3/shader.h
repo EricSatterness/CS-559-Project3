@@ -41,6 +41,7 @@ public:
 	GLuint on1_handle;
 	GLuint on2_handle;
 	GLuint on3_handle;
+	GLuint tex_handle;
 
 	glm::vec4 Material_ADSS;
 	int seeThrough;
