@@ -21,6 +21,9 @@
     <ClCompile Include="vertexattributes.cpp" />
     <ClCompile Include="wall.cpp" />
     <ClCompile Include="ballContactListener.cpp" />
+    <ClCompile Include="fbo.cpp" />
+    <ClCompile Include="ImageTexture.cpp" />
+    <ClCompile Include="Skybox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cube.h" />
@@ -42,11 +45,30 @@
     <ClInclude Include="vertexattributes.h" />
     <ClInclude Include="wall.h" />
     <ClInclude Include="ballContactListener.h" />
+    <ClInclude Include="fbo.h" />
+    <ClInclude Include="FreeImage.h" />
+    <ClInclude Include="ImageTexture.h" />
+    <ClInclude Include="Skybox.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phongAds.frag" />
     <None Include="phongAds.vert" />
     <None Include="solid_shader.frag" />
     <None Include="solid_shader.vert" />
+    <None Include="..\Debug\project3.exe" />
+    <None Include="JumboTronCube.frag" />
+    <None Include="JumboTronShader.frag" />
+    <None Include="SkyBoxShader.frag" />
+    <None Include="TargetShader.frag" />
+    <None Include="earth.jpg" />
+    <None Include="grimmnight_large.jpg" />
+    <None Include="interstellar_large.jpg" />
+    <None Include="miramar_large.jpg" />
+    <None Include="stormydays_large.jpg" />
+    <None Include="violentdays_large.jpg" />
+    <None Include="JumboTronCube.vert" />
+    <None Include="JumboTronShader.vert" />
+    <None Include="SkyBoxShader.vert" />
+    <None Include="TargetShader.vert" />
   </ItemGroup>
 </Project>

@@ -85,7 +85,9 @@
     <ClCompile Include="Curtain.cpp" />
     <ClCompile Include="cylinder.cpp" />
     <ClCompile Include="disk.cpp" />
+    <ClCompile Include="fbo.cpp" />
     <ClCompile Include="Globals.cpp" />
+    <ClCompile Include="ImageTexture.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="moshball.cpp" />
     <ClCompile Include="object.cpp" />
@@ -93,6 +95,7 @@
     <ClCompile Include="RectangularPrism.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Spring.cpp" />
     <ClCompile Include="Square.cpp" />
@@ -107,13 +110,17 @@
     <ClInclude Include="Curtain.h" />
     <ClInclude Include="cylinder.h" />
     <ClInclude Include="disk.h" />
+    <ClInclude Include="fbo.h" />
+    <ClInclude Include="FreeImage.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="ImageTexture.h" />
     <ClInclude Include="moshball.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="RectangularPrism.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="Skybox.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Spring.h" />
     <ClInclude Include="Square.h" />
@@ -123,10 +130,25 @@
     <ClInclude Include="wall.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Debug\project3.exe" />
+    <None Include="earth.jpg" />
+    <None Include="grimmnight_large.jpg" />
+    <None Include="interstellar_large.jpg" />
+    <None Include="JumboTronCube.frag" />
+    <None Include="JumboTronCube.vert" />
+    <None Include="JumboTronShader.frag" />
+    <None Include="JumboTronShader.vert" />
+    <None Include="miramar_large.jpg" />
     <None Include="phongAds.frag" />
     <None Include="phongAds.vert" />
+    <None Include="SkyBoxShader.frag" />
+    <None Include="SkyBoxShader.vert" />
     <None Include="solid_shader.frag" />
     <None Include="solid_shader.vert" />
+    <None Include="stormydays_large.jpg" />
+    <None Include="TargetShader.frag" />
+    <None Include="TargetShader.vert" />
+    <None Include="violentdays_large.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
