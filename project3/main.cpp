@@ -58,6 +58,15 @@ int ballSlices = 30;		// Number of slices to use when drawing the balls
 int ballStacks = 30;		// Number of stacks to use when drawing the balls
 float ballRadius = 1.0f;
 int32 framePeriod = 16;
+// NOTES:
+// Heights and widths in box2D are measured from the center of the shape (not end to end)
+// Friction will only apply when objects collide. In order to slow a ball down, we need to apply damping to the velocity. The body has a linear damping function but we may want to implement our own non-linear damping.
+
+// Scale: 1 meter = 50 feet; Want player area to be 5280sqft
+float arena_width = 105.6f;
+//float arena_width = 50.0f;
+float wall_t = 0.5f;							// Wall thickness
+float wall_l = (arena_width / 2.0f) + wall_t;	// Wall length. Need to add thickness
 
 /* Pointers */
 vector<Wall *> walls;
@@ -350,7 +359,11 @@ void renderFirstPersonScene()
 	else
 		fbo.Use(1);
 	currShader = &jumbotronShader;
-	jumbotronCube->Draw(projection_matrix, glm::scale(worldModelView, vec3(5.0f)), window.size);
+	jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+	
 	//glutSwapBuffers();
 }
 
@@ -520,9 +533,9 @@ int main(int argc, char * argv[])
 		return 0;
 	if(!targetTexture.Initialize("earth.jpg"))
 		return 0;
-	if(!jumbotronShader.Initialize("JumboTronCube.vert", "JumboTronCube.frag"))
+	if(!jumbotronShader.Initialize("JumboTronShader.vert", "JumboTronShader.frag"))
 		return 0;
-	if(!skybox.Initialize(150.0f))
+	if(!skybox.Initialize(arena_width*1.5f))
 		return 0;
 	if(!fbo.Initialize(ivec2(2,2), 2))
 		return 0;
@@ -556,15 +569,6 @@ int main(int argc, char * argv[])
 	BallContactListener ballContactListenerInstance;
 	world.SetContactListener(&ballContactListenerInstance);
 
-	// NOTES:
-	// Heights and widths in box2D are measured from the center of the shape (not end to end)
-	// Friction will only apply when objects collide. In order to slow a ball down, we need to apply damping to the velocity. The body has a linear damping function but we may want to implement our own non-linear damping.
-
-	// Scale: 1 meter = 50 feet; Want player area to be 5280sqft
-	float arena_width = 105.6f;
-	//float arena_width = 50.0f;
-	float wall_t = 0.5f;							// Wall thickness
-	float wall_l = (arena_width / 2.0f) + wall_t;	// Wall length. Need to add thickness
 
 	Wall* wall1 = new Wall();
 	if (!wall1->Initialize(vec3(0.0f, wall_l - wall_t, 0.0f), wall_l, wall_t, 2*wall_t))
