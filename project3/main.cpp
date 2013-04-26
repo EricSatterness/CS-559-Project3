@@ -326,7 +326,7 @@ void renderFirstPersonScene()
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 200.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, .01f, 200.0f);
 
 	b2Vec2 pos = player->body->GetPosition();
 
@@ -351,6 +351,7 @@ void renderFirstPersonScene()
 	currShader = &targetShader;
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
+		targetShader.hit = moshballs[i]->displayTimer;
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
@@ -542,6 +543,7 @@ int main(int argc, char * argv[])
 	currShader = &phongShader;
 
 	jumbotronCube = new Cube();
+	jumbotronCube->color = vec3(.75f, .5f, 0.0f);
 	if(!jumbotronCube->Initialize(1.0f))
 		return 0;
 

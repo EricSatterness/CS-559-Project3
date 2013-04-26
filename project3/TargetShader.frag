@@ -9,6 +9,7 @@
 layout (location = 0) out vec4 FragColor;
 
 uniform sampler2D Tex1;
+uniform int hit;
 
 in vec3 origPosition;
 
@@ -57,7 +58,7 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 	if( sDotN > 0.0 )
 		spec = Ls * Ks * pow( max( dot(r,v), 0.0 ), shininess );
 
-	
+
 	vec4 useColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);	
 	vec2 coord;
 	coord.y = theta/6.2831853;
@@ -71,10 +72,12 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 	coord.x = 2.0f*coord.x;
 	coord.y = 2.0f*coord.y;
 	coord.y = 1.0f - coord.y;
+	
 	useColor = texture( Tex1, coord);
-	//useColor.x = coord.x;
-	//useColor.y = coord.y;
-	return useColor;//*vec4(ambient + diffuse + spec, 1.0f); 
+	if(hit==1)
+		useColor.x = .75;
+
+	return useColor*vec4(ambient + diffuse + spec, 1.0f); 
 }
 
 void main()
@@ -87,29 +90,7 @@ void main()
 	float r = sqrt(origPosition.x*origPosition.x + origPosition.y*origPosition.y + origPosition.z*origPosition.z);
 	theta = acos(origPosition.z/r);
 	phi = atan(origPosition.y/origPosition.x);
-
-	vec4 useColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);	
-	vec2 coord;
-	coord.y = theta/6.2831853;
-	coord.x = (phi + 1.570796327);
-	if(origPosition.x > 0)
-		coord.x = 3.141592654 - coord.x;
-	coord.x = coord.x/6.2831853;
-	coord.x = coord.x/2;
-	if(origPosition.x > 0)
-		coord.x = .5 - coord.x;
-	coord.x = 2.0f*coord.x;
-	coord.y = 2.0f*coord.y;
-	coord.y = 1.0f - coord.y;
-
-
-
-	useColor = texture( Tex1, coord);
-	//useColor.x = coord.x;
-	//useColor.y = coord.y;
-	FragColor = useColor;
-
-			
-	//FragColor = ads(light_position_1, ADS_1, on_1, Ka, Kd, Ks, shininess) + ads(light_position_2, ADS_2, on_2, Ka, Kd, Ks, shininess) + ads(light_position_3, ADS_3, on_3, Ka, Kd, Ks, shininess);
+				
+	FragColor = ads(light_position_1, ADS_1, on_1, Ka, Kd, Ks, shininess) + ads(light_position_2, ADS_2, on_2, Ka, Kd, Ks, shininess) + ads(light_position_3, ADS_3, on_3, Ka, Kd, Ks, shininess);
 	FragColor.a = 1.0f;
 }
