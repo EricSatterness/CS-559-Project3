@@ -23,6 +23,9 @@ const char * FramebufferCompletenessError(GLint error_code);
 
 // Use for ball timers
 extern float currentTime;
+extern float totalTimePaused;
+extern float timeLastPauseBegan;
+extern bool paused;
 extern float countDownTimerSeconds;
 extern int targetsRemaining;
 

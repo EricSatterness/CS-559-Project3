@@ -144,6 +144,19 @@ void KeyboardFunc(unsigned char c, int x, int y)
 	case 'q':
 		window.sceneIndex = ++window.sceneIndex % 3;
 		break;
+	case 'p':
+		if (paused)
+		{
+			// Will be leaving paused state
+			totalTimePaused += (currentTime - timeLastPauseBegan);
+		}
+		else
+		{
+			// Will be entering paused state
+			timeLastPauseBegan = currentTime;
+		}
+		paused = !paused;
+		break;
 	case '=':
 	case '+':
 		zoom += .001f;
@@ -304,7 +317,7 @@ void DisplayStats()
 		return;
 
 	char time [16], targets [16];
-	sprintf(time, "Time: %.2f", currentTime);
+	sprintf(time, "Time: %.2f", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
 	sprintf(targets, "Targets: %d", targetsRemaining);
 
 
@@ -352,7 +365,7 @@ void renderFirstPersonScene()
 	worldModelView = rotate(worldModelView, player->rotation + 90.0f, vec3(0.0f, 0.0f, 1.0f));
 	worldModelView = translate(worldModelView, vec3(-pos.x, -pos.y, 0.0f));
 		
-	skybox.Draw(projection_matrix, worldModelView, window.size);
+	//skybox.Draw(projection_matrix, worldModelView, window.size);
 
 	currShader = &phongShader;
 	for (int i = 0; i < (int)walls.size(); i++)
@@ -370,7 +383,7 @@ void renderFirstPersonScene()
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
-	if(fbo.boundIndex == 1)
+	/*if(fbo.boundIndex == 1)
 		fbo.Use(0);
 	else
 		fbo.Use(1);
@@ -378,7 +391,7 @@ void renderFirstPersonScene()
 	jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
 	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
 	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);*/
 	
 	//glutSwapBuffers();
 }
@@ -399,7 +412,7 @@ void renderThirdPersonScene()
 	worldModelView = rotate(worldModelView, xRot, vec3(1.0f, 0.0f, 0.0f));
 	worldModelView = scale(worldModelView, vec3(zoom, zoom, zoom));
 		
-	skybox.Draw(projection_matrix, worldModelView, window.size);
+	//skybox.Draw(projection_matrix, worldModelView, window.size);
 
 	currShader = &phongShader;
 	for (int i = 0; i < (int)walls.size(); i++)
@@ -413,6 +426,7 @@ void renderThirdPersonScene()
 	currShader = &targetShader;
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
+		targetShader.hit = moshballs[i]->displayTimer;
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
@@ -473,14 +487,17 @@ void DisplayFunc()
 	if (window.window_handle == -1)
 		return;
 
-	mouseControlsRoutine();
-
 	currentTime = float(glutGet(GLUT_ELAPSED_TIME)) / 1000.0f;
 
-	// Instruct the world to perform a single step of simulation.
-	// It is generally best to keep the time step and iterations fixed.
-	world.Step(timeStep, velocityIterations, positionIterations);
-	//player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+	if (!paused)
+	{
+		mouseControlsRoutine();
+
+		// Instruct the world to perform a single step of simulation.
+		// It is generally best to keep the time step and iterations fixed.
+		world.Step(timeStep, velocityIterations, positionIterations);
+		//player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+	}
 	
 	// Determine which scene to render on the screen
 	RenderFunction render;
@@ -520,10 +537,14 @@ void DisplayFunc()
 // This is used to control the frame rate (60Hz).
 static void Timer(int)
 {
-	// Check timers of balls
-	for (int i = 0; i < (int)moshballs.size(); i++)
+	if (!paused)
 	{
-		moshballs[i]->CheckTimer(currentTime);
+		float currTimeMinusPauses = currentTime - totalTimePaused;
+		// Check timers of balls
+		for (int i = 0; i < (int)moshballs.size(); i++)
+		{
+			moshballs[i]->CheckTimer(currTimeMinusPauses);
+		}
 	}
 
 	//glutSetWindow(mainWindow);
@@ -533,7 +554,7 @@ static void Timer(int)
 
 int main(int argc, char * argv[])
 {
-	countDownTimerSeconds = 25.0f;
+	countDownTimerSeconds = 2.0f;
 
 	glutInit(&argc, argv);
 	glutInitWindowSize(1024, 1024);

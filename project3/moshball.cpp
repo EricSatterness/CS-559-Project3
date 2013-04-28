@@ -7,7 +7,7 @@ Moshball::Moshball()
 {
 	// OpenGL sphere that will represent the ball
 	this->sphere = new Sphere(vec3(0.27f, 1.0f, 0.0f));
-	this->startTime = -numeric_limits<float>::max();
+	this->startTimeMinusPauses = -numeric_limits<float>::max();
 	this->displayTimer = false;
 
 	// Don't use a timer or threading. We already have a timer: the display method
@@ -66,7 +66,8 @@ void Moshball::StartContact()
 	this->sphere = new Sphere(vec3(1.0f, 0.27f, 0.0f));
 	this->sphere->Initialize(1.0f, 30, 30);*/
 
-	this->startTime = currentTime;
+	// Add time paused so that we have
+	this->startTimeMinusPauses = currentTime - totalTimePaused;
 
 	if (this->displayTimer == false)
 	{
@@ -100,10 +101,10 @@ void Moshball::StartContact()
 //	}
 //}
 
-void Moshball::CheckTimer(float currentTime)
+void Moshball::CheckTimer(float currentTimeMinusPauses)
 {
 	// Only change the variables once
-	if ((currentTime - this->startTime) > countDownTimerSeconds && this->displayTimer == true)
+	if ((currentTimeMinusPauses - this->startTimeMinusPauses) > countDownTimerSeconds && this->displayTimer == true)
 	{
 		//this->sphere->ChangeColor(vec3(0.27f, 1.0f, 0.0f));
 		this->displayTimer = false;

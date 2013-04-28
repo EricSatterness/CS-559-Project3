@@ -18,6 +18,9 @@ float l3Intensity;
 
 // Use for ball timers
 float currentTime = 0.0f;
+float totalTimePaused = 0.0f;
+float timeLastPauseBegan = 0.0f;
+bool paused = false;
 float countDownTimerSeconds = 0.0f;
 int targetsRemaining = 0;
 

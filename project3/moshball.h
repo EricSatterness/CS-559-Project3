@@ -13,7 +13,7 @@ class Moshball
 {
 public:
 	b2Body* body;
-	float startTime;
+	float startTimeMinusPauses;
 	bool displayTimer;
 
 	Moshball();
