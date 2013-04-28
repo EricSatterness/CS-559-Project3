@@ -38,7 +38,13 @@ bool Wall::Initialize(vec3 center, float width, float height, float depth)
 
 	b2PolygonShape wallShape;
 	wallShape.SetAsBox(width, height);
-	this->body->CreateFixture(&wallShape, 1.0f);
+
+	b2FixtureDef wallFixture;
+	wallFixture.shape = &wallShape;
+	wallFixture.density = 1.0f;
+	wallFixture.friction = 0.0f;
+	wallFixture.restitution = 1.0f;
+	this->body->CreateFixture(&wallFixture);
 
 	if(!this->cube->Initialize(1))
 		return false;

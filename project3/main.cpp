@@ -202,6 +202,21 @@ void MouseMoveFunc(int x, int y)
 // Handles the player movement
 void mouseControlsRoutine()
 {
+	b2Vec2 v = player->body->GetLinearVelocity();
+	float angle = 0;
+
+	if (player->hit)
+	{
+		player->hit = false;
+		angle = 180.0f/3.14f * atan2(-v.y, v.x);
+		if (angle < 0)
+			angle += 360;
+
+		printf("%4.2f %4.2f %4.2f\n", v.x, v.y, angle);
+
+		player->rotation = angle;
+	}
+
 	// X offset rotates the player
 	// Y offset moves the player forward/backward
 	float dx = window.mouse.x - window.origin.x;
@@ -377,7 +392,7 @@ void renderThirdPersonScene()
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 200.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
 
 	mat4 worldModelView = translate(mat4(1.0f), vec3(0.0f, 0.0f, -8.0f));
 	worldModelView = rotate(worldModelView, yRot, vec3(0.0f, 1.0f, 0.0f));
@@ -417,7 +432,7 @@ void renderBox2dDebugScene()
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
 	glMatrixMode(GL_PROJECTION);
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 20.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, 1.0f, 10.0f);
 	glLoadMatrixf(value_ptr(projection_matrix));
 
 	glMatrixMode(GL_MODELVIEW);
@@ -436,6 +451,18 @@ void renderBox2dDebugScene()
 	glEnd();
 
 	world.DrawDebugData();
+
+	// Draw player heading vector
+	b2Vec2 pos = player->body->GetPosition();
+	mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
+	m = rotate(m, -(player->rotation), vec3(0.0f, 0.0f, 1.0f));
+	glLoadMatrixf(value_ptr(m));
+	glColor3f(1,1,1);
+	glLineWidth(1.0);
+	glBegin(GL_LINES);
+		glVertex2f(0.0f, 0.0f);
+		glVertex2f(3.0f, 0.0f);
+	glEnd();
 
 	//glutSwapBuffers();
 }

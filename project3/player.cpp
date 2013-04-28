@@ -12,11 +12,13 @@ Player::Player()
 bool Player::Initialize(float radius, int slices, int stacks)
 {
 	this->rotation = 0.0f;
+	this->hit = false;
 
 	// Make the player's Box2D circle
 	b2BodyDef playerDef;
 	playerDef.type = b2_dynamicBody;
 	playerDef.position.Set(0.0f,0.0f);
+	//playerDef.bullet = true;
 	this->body = world.CreateBody(&playerDef);
 
 	box2dUserData *u = new box2dUserData();
@@ -30,8 +32,8 @@ bool Player::Initialize(float radius, int slices, int stacks)
 	b2FixtureDef playerFixture;
 	playerFixture.shape = &playerShape;
 	playerFixture.density = 1.0f;
-	playerFixture.friction = 0.3f;
-	playerFixture.restitution = 0.2f;
+	playerFixture.friction = 0.0f;
+	playerFixture.restitution = 1.0f;
 	this->body->CreateFixture(&playerFixture);
 
 	if (!this->sphere->Initialize(radius, slices, stacks))
@@ -51,7 +53,7 @@ void Player::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::
 
 void Player::StartContact()
 {
-
+	this->hit = true;
 }
 
 void Player::TakeDown()

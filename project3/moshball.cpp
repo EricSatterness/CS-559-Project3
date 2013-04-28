@@ -35,8 +35,8 @@ bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
 	b2FixtureDef ballFixture;
 	ballFixture.shape = &ballShape;
 	ballFixture.density = 1.0f;
-	ballFixture.friction = 0.3f;
-	ballFixture.restitution = 0.5f;
+	ballFixture.friction = 0.0f;
+	ballFixture.restitution = 1.0f;
 	this->body->CreateFixture(&ballFixture);
 	this->body->SetLinearDamping(0.25f);
 	

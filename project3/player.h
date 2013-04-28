@@ -11,6 +11,7 @@ class Player
 public:
 	b2Body* body;
 	float rotation;
+	bool hit;
 
 	Player();
 	bool Initialize(float radius, int slices, int stacks);
