@@ -19,6 +19,8 @@
 #include "ImageTexture.h"
 #include "Skybox.h"
 #include "fbo.h"
+//#include <ft2build.h>
+//#include FT_FREETYPE_H
 
 using namespace std;
 using namespace glm;
@@ -83,6 +85,15 @@ float32 speed = 30.0f;
 float32 timeStep = 1.0f / 60.0f;
 int32 velocityIterations = 6;
 int32 positionIterations = 2;
+
+// Freetype variables
+//FT_Library ftLibrary;
+//FT_Face ftFace;      /* handle to face object */
+//FT_GlyphSlot ftSlot;
+//FT_Matrix ftMatrix;              /* transformation matrix */
+//FT_UInt glyph_index;
+//FT_Vector pen;                 /* untransformed origin */
+//int n;
 #pragma endregion
 
 // Take care of taking down and deleting any items
@@ -143,6 +154,9 @@ void KeyboardFunc(unsigned char c, int x, int y)
 		break;
 	case 'q':
 		window.sceneIndex = ++window.sceneIndex % 3;
+		break;
+	case 'w':
+		window.wireframe = !window.wireframe;
 		break;
 	case 'p':
 		if (paused)
@@ -215,6 +229,7 @@ void MouseMoveFunc(int x, int y)
 // Handles the player movement
 void mouseControlsRoutine()
 {
+	// Handle the player's reflection when it collides with something
 	b2Vec2 v = player->body->GetLinearVelocity();
 	float angle = 0;
 
@@ -236,13 +251,13 @@ void mouseControlsRoutine()
 	float dy = window.mouse.y - window.origin.y;
 	
 	// Values of non-linear functions chosen from experimentation
-	float rotationOffset = pow(abs(dx), 1.95f) / 100000.0f;
+	float rotationOffset = pow(abs(dx), 2.1f) / 100000.0f;
 	if (dx < 0)
 		player->rotation = player->rotation - rotationOffset;
 	else
 		player->rotation = player->rotation + rotationOffset;
 
-	float speed = pow(abs(dy), 1.7f) / 2000.0f;
+	float speed = pow(abs(dy), 1.9f) / 2000.0f;
 	mat4 velocityMat = mat4();
 	velocityMat = rotate(velocityMat, player->rotation, vec3(0.0f, 0.0f, 1.0f));
 	vec4 velocity = velocityMat*vec4(speed, 0.0f, 0.0f, 1.0f);
@@ -317,8 +332,10 @@ void DisplayStats()
 		return;
 
 	char time [16], targets [16];
-	sprintf(time, "Time: %.2f", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
-	sprintf(targets, "Targets: %d", targetsRemaining);
+	//sprintf(time, "Time: %.2f", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
+	sprintf_s(time, "Time: %.2f", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
+	//sprintf(targets, "Targets: %d", targetsRemaining);
+	sprintf_s(targets, "Targets: %d", targetsRemaining);
 
 
 	glDisable(GL_LIGHTING);
@@ -554,10 +571,11 @@ static void Timer(int)
 
 int main(int argc, char * argv[])
 {
-	countDownTimerSeconds = 2.0f;
+	countDownTimerSeconds = 15.0f;
 
 	glutInit(&argc, argv);
-	glutInitWindowSize(1024, 1024);
+	//glutInitWindowSize(1024, 1024);
+	glutInitWindowSize(800, 600);
 	glutInitWindowPosition(20, 20);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 
@@ -600,6 +618,8 @@ int main(int argc, char * argv[])
 	window.instructions.push_back("");
 	window.instructions.push_back("8/2/6/4            Rotate god-view camera");
 	window.instructions.push_back("+/-                Zoom god-view camera in/out");
+	window.instructions.push_back("W                  Turn on/off wireframe mode");
+	window.instructions.push_back("P                  Pause game");
 	window.instructions.push_back("F1                 Switch between view modes");
 	window.instructions.push_back("X                  Exit");
 	
@@ -684,6 +704,72 @@ int main(int argc, char * argv[])
 	// Use a timer to control the frame rate.
 	glutTimerFunc(framePeriod, Timer, 0);
 
+
+	//// Set up freetype
+	//int error = FT_Init_FreeType( &ftLibrary );
+	//if (error)
+	//{
+	//	return 0;
+ //   }
+
+	//error = FT_New_Face(ftLibrary,
+	//					"/usr/share/fonts/truetype/arial.ttf",
+	//					0,
+	//					&ftFace);
+	//if (error == FT_Err_Unknown_File_Format)
+	//{
+	//	return 0;
+	//}
+	//else
+	//{
+	//	return 0;
+	//}
+
+	//error = FT_Set_Char_Size(
+ //           ftFace,    /* handle to face object           */
+ //           0,       /* char_width in 1/64th of points  */
+ //           16*64,   /* char_height in 1/64th of points */
+ //           300,     /* horizontal device resolution    */
+ //           300 );   /* vertical device resolution      */
+
+	//ftSlot = ftFace->glyph;                /* a small shortcut */
+
+	//float angle = 0.0f;
+	//char text[] = "hello";
+	//int num_chars = 5;
+	//int my_target_height = 400;
+
+	///* set up matrix */
+	//ftMatrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
+	//ftMatrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
+	//ftMatrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
+	//ftMatrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
+
+	///* the pen position in 26.6 cartesian space coordinates */
+	///* start at (300,200)                                   */
+	//pen.x = 300 * 64;
+	//pen.y = ( my_target_height - 200 ) * 64;
+	//
+	//for ( n = 0; n < num_chars; n++ )
+	//{
+	//	/* set transformation */
+	//	FT_Set_Transform( ftFace, &ftMatrix, &pen );
+	//	
+	//	/* load glyph image into the slot (erase previous one) */
+	//	error = FT_Load_Char( ftFace, text[n], FT_LOAD_RENDER );
+
+	//	if ( error )
+	//		continue;  /* ignore errors */
+
+	//	/* now, draw to our target surface (convert position) */
+	//	my_draw_bitmap( &ftSlot->bitmap,
+	//					ftSlot->bitmap_left,
+	//					my_target_height - ftSlot->bitmap_top );
+
+	//	/* increment pen position */
+	//	pen.x += ftSlot->advance.x;
+	//	pen.y += ftSlot->advance.y;
+	//}
 
 	glutMainLoop();
 

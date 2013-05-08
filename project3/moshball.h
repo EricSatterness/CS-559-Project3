@@ -13,8 +13,12 @@ class Moshball
 {
 public:
 	b2Body* body;
+	float radius;
 	float startTimeMinusPauses;
 	bool displayTimer;
+	//float rotation;
+	float rotX, rotY;
+	glm::mat4 rotMat;
 
 	Moshball();
 	bool Initialize(glm::vec3 center, float radius, int slices, int stacks);
