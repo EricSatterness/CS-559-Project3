@@ -11,6 +11,7 @@ layout (location = 0) out vec4 FragColor;
 uniform sampler2D Tex1;
 uniform int hit;
 
+in mat4 modelview;
 in vec3 origPosition;
 
 in vec3 color;
@@ -78,6 +79,14 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 		useColor.x = .75;
 
 	return useColor*vec4(ambient + diffuse + spec, 1.0f); 
+
+	//d.x = (d.x + 1)/2;
+	//d.y = (d.y + 1)/2;
+
+	//vec4 d = vec4(sin(16*theta), sin(16*phi), 0.0f, 1.0f);
+	//d = vec4(modelview * d);
+
+	//return d/(on_1 + on_2 + on_3);
 }
 
 void main()
@@ -91,6 +100,9 @@ void main()
 	theta = acos(origPosition.z/r);
 	phi = atan(origPosition.y/origPosition.x);
 				
+	vec4 d = vec4(sin(16*theta), sin(16*phi), 0.0f, 1.0f);
+	//d = vec4(modelview * d);
+
 	FragColor = ads(light_position_1, ADS_1, on_1, Ka, Kd, Ks, shininess) + ads(light_position_2, ADS_2, on_2, Ka, Kd, Ks, shininess) + ads(light_position_3, ADS_3, on_3, Ka, Kd, Ks, shininess);
 	FragColor.a = 1.0f;
 }

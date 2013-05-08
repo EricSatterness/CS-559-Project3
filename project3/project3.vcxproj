@@ -80,6 +80,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="avi_utils.cpp" />
     <ClCompile Include="ballContactListener.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Curtain.cpp" />
@@ -87,11 +88,14 @@
     <ClCompile Include="disk.cpp" />
     <ClCompile Include="fbo.cpp" />
     <ClCompile Include="Globals.cpp" />
+    <ClCompile Include="HalfCube.cpp" />
     <ClCompile Include="ImageTexture.cpp" />
+    <ClCompile Include="ImageWriter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="moshball.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="Recorder.cpp" />
     <ClCompile Include="RectangularPrism.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -105,6 +109,7 @@
     <ClCompile Include="wall.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="avi_utils.h" />
     <ClInclude Include="ballContactListener.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Curtain.h" />
@@ -113,10 +118,13 @@
     <ClInclude Include="fbo.h" />
     <ClInclude Include="FreeImage.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="HalfCube.h" />
     <ClInclude Include="ImageTexture.h" />
+    <ClInclude Include="ImageWriter.h" />
     <ClInclude Include="moshball.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="Recorder.h" />
     <ClInclude Include="RectangularPrism.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="shader.h" />
@@ -149,6 +157,8 @@
     <None Include="TargetShader.frag" />
     <None Include="TargetShader.vert" />
     <None Include="violentdays_large.jpg" />
+    <None Include="WoodShader.frag" />
+    <None Include="WoodShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

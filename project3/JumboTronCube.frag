@@ -60,13 +60,14 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 	
 	//assumes flat sides facing fully in x, y or z
 	vec4 useColor;
-	if(abs(origNormal.z) == 1)
+	if(abs(origNormal.z) > .9)
 		useColor = texture( Tex1, vec2(.5f + origPosition.x, .5f + origNormal.z*origPosition.y) );
-	else if(abs(origNormal.y) == 1)
+	else if(abs(origNormal.y) > .9)
 		useColor = texture( Tex1, vec2(.5f - origNormal.y*origPosition.x, .5f + origPosition.z) );
 	else
 		useColor = texture( Tex1, vec2(.5f + origNormal.x*origPosition.y, .5f + origPosition.z) );
-	return useColor*vec4(ambient + diffuse + spec, 1.0f); 
+	
+	return useColor*vec4(ambient + diffuse + spec, 1.0f); ;
 }
 
 void main()
@@ -76,6 +77,7 @@ void main()
 	vec3 Kd = vec3(M_ADSS.y, M_ADSS.y, M_ADSS.y);
 	vec3 Ks = vec3(M_ADSS.z, M_ADSS.z, M_ADSS.z);
 			
-	FragColor = ads(light_position_1, ADS_1, on_1, Ka, Kd, Ks, shininess) + ads(light_position_2, ADS_2, on_2, Ka, Kd, Ks, shininess) + ads(light_position_3, ADS_3, on_3, Ka, Kd, Ks, shininess);
+	//FragColor = ads(light_position_1, ADS_1, on_1, Ka, Kd, Ks, shininess) + ads(light_position_2, ADS_2, on_2, Ka, Kd, Ks, shininess) + ads(light_position_3, ADS_3, on_3, Ka, Kd, Ks, shininess);
+	FragColor = texture( Tex1, vec2(.5f + origPosition.x, .5f + origNormal.z*origPosition.y) );
 	FragColor.a = 1.0f;
 }

@@ -3,15 +3,27 @@
 //skybox images from http://www.quake3world.com/forum/viewtopic.php?t=9242
 const char* skybox_files[5] = {"miramar_large.jpg", "grimmnight_large.jpg", "interstellar_large.jpg", "stormydays_large.jpg", "violentdays_large.jpg"};
 
+void Skybox::TakeDown()
+{
+	delete box;
+	shader.TakeDown();
+	for(int i=0; i<NUM_SKYBOX_TEXTURES; i++)
+	{
+		skybox_textures[i]->TakeDown();
+	}
+}	
 Skybox::Skybox()
 {
 	skyboxIndex = 0;
 }
-
+void Skybox::SwitchLight(int on)
+{
+	shader.seeThrough = on;
+}
 bool Skybox::Initialize(float size)
 {
 	this->size = size;
-	box = new Cube();
+	box = new HalfCube();
 	box->Initialize(1.0f);
 	if(!shader.Initialize("SkyBoxShader.vert", "SkyBoxShader.frag"))
 		return false;

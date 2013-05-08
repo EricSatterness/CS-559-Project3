@@ -51,4 +51,15 @@ void BallContactListener::BeginContact(b2Contact* contact)
 //		static_cast<Moshball*>(udB->object)->StartContact();
 //		static_cast<Player*>(udA->object)->StartContact();
 //	}
+//
+//	// When the player collides with wall
+//	else if (udA->objectType == OBJECT_TYPE_WALL && udB->objectType == OBJECT_TYPE_PLAYER)
+//	{
+//		static_cast<Player*>(udB->object)->StartContact();
+//	}
+//
+//	else if (udA->objectType == OBJECT_TYPE_PLAYER && udB->objectType == OBJECT_TYPE_WALL)
+//	{
+//		static_cast<Player*>(udA->object)->StartContact();
+//	}
 //}

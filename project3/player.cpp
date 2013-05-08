@@ -53,6 +53,7 @@ void Player::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::
 
 void Player::StartContact()
 {
+	this->hitVelocity = this->body->GetLinearVelocity();
 	this->hit = true;
 }
 

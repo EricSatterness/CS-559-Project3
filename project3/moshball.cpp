@@ -67,7 +67,7 @@ void Moshball::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm
 		vec3 velocity(velocityB2.x, velocityB2.y, 0.0f);
 		vec3 rotationAxis = normalize(cross(vec3(0.0f, 0.0f, 1.0f), normalize(velocity)));
 		float speed = sqrtf(pow(velocity.x, 2.0f) + pow(velocity.y, 2.0f));
-		float rotation = speed / (this->radius * 3.0f);
+		float rotation = speed / (this->radius *2* 3.141592654f);
 		/*this->rotation += rotation;
 		if (this->rotation > 360)
 			this->rotation -= 360;

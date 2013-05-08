@@ -60,10 +60,10 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 	
 	//assumes flat sides facing fully in x, y or z
 	vec4 useColor;
-	if(origNormal.x == 1)
+	if(origNormal.x > .9)
 		useColor = texture( Tex1, vec2(.5f + origNormal.x*origPosition.y, .5f + origPosition.z) );
 	else
-		useColor = vec4(color, 1.0f);
+		useColor = vec4(.5f, .25f, 0.0f, 1.0f);
 	return useColor*vec4(ambient + diffuse + spec, 1.0f); 
 }
 

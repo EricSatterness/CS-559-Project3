@@ -26,9 +26,8 @@ uniform int on_3_in;
 
 uniform float light3_percent;
 
-out mat4 modelview;
-
 out vec3 origPosition;
+out vec3 origNormal;
 
 out vec3 color;
 out vec3 position;
@@ -51,9 +50,9 @@ flat out uint on_3;
 void main()
 {
 	origPosition = vertex_position;
-	modelview = modelview_matrix;
 	seeThrough = seeThrough_in;
 	color = vertex_color;
+	origNormal = vertex_normal;
 	normal = normalize(normal_matrix * vertex_normal);
 	position = vec3(modelview_matrix * vec4(vertex_position,1.0));
 	M_ADSS = Material_ADSS;

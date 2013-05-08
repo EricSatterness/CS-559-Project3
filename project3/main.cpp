@@ -25,13 +25,15 @@
 using namespace std;
 using namespace glm;
 
+#define NUMFRAMEBUFFERS 3
+
 float xRot = 0.0f;
 float yRot = 0.0f; 
 float zoom = 0.05f;
 ImageTexture targetTexture;
 Skybox skybox;
 FrameBufferObject fbo;
-Shader phongShader, targetShader, jumbotronShader;
+Shader phongShader, targetShader, jumbotronShader, woodShader, imageShader;
 Cube *jumbotronCube;
 
 #pragma region Data Structs
@@ -101,6 +103,18 @@ void CloseFunc()
 {
 	window.window_handle = -1;
 
+	phongShader.TakeDown();
+	targetShader.TakeDown();
+	jumbotronShader.TakeDown();
+	woodShader.TakeDown(); 
+	imageShader.TakeDown();
+
+	targetTexture.TakeDown();
+	
+	fbo.TakeDown();
+
+	skybox.TakeDown();
+
 	if (player != NULL)
 	{
 		player->TakeDown();
@@ -137,7 +151,7 @@ void ReshapeFunc(int w, int h)
 		window.origin = vec2((float)window.size.x / 2.0f, (float)window.size.y / 2.0f);
 
 		fbo.TakeDown();
-		if(!fbo.Initialize(window.size, 2))
+		if(!fbo.Initialize(window.size, NUMFRAMEBUFFERS))
 			return;
 	}
 }
@@ -236,7 +250,10 @@ void mouseControlsRoutine()
 	if (player->hit)
 	{
 		player->hit = false;
+		//float tan = atan2(-v.y, v.x);
 		angle = 180.0f/3.14f * atan2(-v.y, v.x);
+		//float tan = atan2(player->hitVelocity.y, -player->hitVelocity.x);
+		//angle = 180.0f/3.14f * tan;
 		if (angle < 0)
 			angle += 360;
 
@@ -362,6 +379,42 @@ void DisplayStats()
 	glPopMatrix();
 }
 
+void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumbos, bool sky)
+{
+	b2Vec2 pos = player->body->GetPosition();
+
+	if(sky)
+		skybox.Draw(projection_matrix, worldModelView, window.size);
+	
+	currShader = &phongShader;
+	for (int i = 0; i < (int)walls.size(); i++)
+	{
+		walls[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+		
+	targetTexture.Use();
+	currShader = &targetShader;
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		targetShader.hit = moshballs[i]->displayTimer;
+		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+	if(self)
+		player->Draw(projection_matrix, worldModelView, window.size);
+
+	if(jumbos)
+	{
+		if(fbo.boundIndex == 1)
+			fbo.Use(0);
+		else
+			fbo.Use(1);
+		currShader = &jumbotronShader;
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+	}
+}
 void renderFirstPersonScene()
 {
 	glEnable(GL_DEPTH_TEST);
@@ -371,7 +424,7 @@ void renderFirstPersonScene()
 	glViewport(0, 0, window.size.x, window.size.y);
 	glPolygonMode(GL_FRONT_AND_BACK, window.wireframe ? GL_LINE : GL_FILL);
 
-	mat4 projection_matrix = perspective(45.0f, window.window_aspect, .01f, 200.0f);
+	mat4 projection_matrix = perspective(45.0f, window.window_aspect, .01f, 300.0f);
 
 	b2Vec2 pos = player->body->GetPosition();
 
@@ -381,36 +434,15 @@ void renderFirstPersonScene()
 	// X-axis is considered 0 degrees for the player's rotation. So start by looking at positive X-axis and then rotate from there
 	worldModelView = rotate(worldModelView, player->rotation + 90.0f, vec3(0.0f, 0.0f, 1.0f));
 	worldModelView = translate(worldModelView, vec3(-pos.x, -pos.y, 0.0f));
-		
-	//skybox.Draw(projection_matrix, worldModelView, window.size);
+			
+	skybox.SwitchLight(1);
+	drawScene(projection_matrix, scale(translate(worldModelView, vec3(0.0f, 0.0f, -2.0f)), vec3(1.0f, 1.0f, -1.0f)), false, true, true);
+	skybox.SwitchLight(0);
 
-	currShader = &phongShader;
-	for (int i = 0; i < (int)walls.size(); i++)
-	{
-		walls[i]->Draw(projection_matrix, worldModelView, window.size);
-	}
+	glClear(GL_DEPTH_BUFFER_BIT);
 
-	//player->Draw(projection_matrix, worldModelView, window.size);
+	drawScene(projection_matrix, worldModelView, false, true, true);
 
-	targetTexture.Use();
-	currShader = &targetShader;
-	for (int i = 0; i < (int)moshballs.size(); i++)
-	{
-		targetShader.hit = moshballs[i]->displayTimer;
-		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
-	}
-
-	/*if(fbo.boundIndex == 1)
-		fbo.Use(0);
-	else
-		fbo.Use(1);
-	currShader = &jumbotronShader;
-	jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-	jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);*/
-	
-	//glutSwapBuffers();
 }
 
 void renderThirdPersonScene()
@@ -516,39 +548,54 @@ void DisplayFunc()
 		//player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 	}
 	
+	
 	// Determine which scene to render on the screen
 	RenderFunction render;
 	switch (window.sceneIndex)
 	{
 	case 0:
 		render = renderFirstPersonScene;
+		fbo.Bind(1);
+		render();
+		fbo.Unbind();
+
+		fbo.Bind(0);
+		render();
+		fbo.Unbind();
+
+		fbo.Bind(1);
+		render();
+		fbo.Unbind();
+
+		render();
 		break;
 	case 1:
 		render = renderThirdPersonScene;
+		render();
 		break;
 	case 2:
 		render = renderBox2dDebugScene;
+		render();
 		break;
 	}
-	fbo.Bind(1);
-	render();
-	fbo.Unbind();
-
-	fbo.Bind(0);
-	render();
-	fbo.Unbind();
-
-	fbo.Bind(1);
-	render();
-	fbo.Unbind();
-
-	render();
+	
 
 	DisplayCrosshairs();
 	DisplayStats();
 	DisplayInstructions();
 
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, window.size.x, window.size.y);
+	mat4 projection_matrix = glm::ortho(0.0f, (float)window.size.x/2, 0.0f, (float)window.size.y/2);
+	mat4 worldModelView  = translate(mat4(1.0f), vec3( window.size.x/2 - window.size.x/13, window.size.y/2 - window.size.y/13, 0.0f));
+	drawScene(projection_matrix, worldModelView, true, false, false);
+	
 	glutSwapBuffers();
+
+	
+	if(targetsRemaining == 0)
+		glutLeaveMainLoop();
+
 }
 
 // This is used to control the frame rate (60Hz).
@@ -568,9 +615,19 @@ static void Timer(int)
 	glutPostRedisplay();
 	glutTimerFunc(framePeriod, Timer, 0);
 }
-
+int error()
+{
+	char c;
+	scanf("%c", &c);
+	return 0;
+}
 int main(int argc, char * argv[])
 {
+	if(argc > 1)
+		numBalls = atoi(argv[1]);
+	if(argc > 2)
+		seed = atoi(argv[2]);
+
 	countDownTimerSeconds = 15.0f;
 
 	glutInit(&argc, argv);
@@ -591,27 +648,31 @@ int main(int argc, char * argv[])
 	if (glewInit() != GLEW_OK)
 	{
 		cerr << "GLEW failed to initialize." << endl;
-		return 0;
+		return error();
 	}
 
 	if(!phongShader.Initialize("phongAds.vert", "phongAds.frag"))
-		return 0;
+		return error();
 	if(!targetShader.Initialize("TargetShader.vert", "TargetShader.frag"))
-		return 0;
+		return error();
 	if(!targetTexture.Initialize("earth.jpg"))
-		return 0;
+		return error();
 	if(!jumbotronShader.Initialize("JumboTronShader.vert", "JumboTronShader.frag"))
-		return 0;
-	if(!skybox.Initialize(arena_width*1.5f))
-		return 0;
-	if(!fbo.Initialize(ivec2(2,2), 2))
-		return 0;
+		return error();
+	if(!woodShader.Initialize("WoodShader.vert", "WoodShader.frag"))
+		return error();
+	if(!skybox.Initialize(arena_width*2.5f))
+		return error();
+	if(!fbo.Initialize(ivec2(2,2), NUMFRAMEBUFFERS))
+		return error();
+	if(!imageShader.Initialize("JumboTronCube.vert", "JumboTronCube.frag"))
+		return error();
 	currShader = &phongShader;
-
 	jumbotronCube = new Cube();
-	jumbotronCube->color = vec3(.75f, .5f, 0.0f);
+	jumbotronCube->color = vec3(.625f, .625f, .859f);
 	if(!jumbotronCube->Initialize(1.0f))
-		return 0;
+		return error();
+
 
 	window.instructions.push_back("Project 3 - UW-Madison - CS 559");
 	window.instructions.push_back("Eric Satterness and Chelsey Denton");
@@ -645,28 +706,28 @@ int main(int argc, char * argv[])
 	{
 		wall1->TakeDown();
 		delete wall1;
-		return 0;
+		return error();
 	}
 	Wall* wall2 = new Wall();
 	if (!wall2->Initialize(vec3(wall_l - wall_t, 0.0f, 0.0f), wall_t, wall_l, 2*wall_t))
 	{
 		wall2->TakeDown();
 		delete wall2;
-		return 0;
+		return error();
 	}
 	Wall* wall3 = new Wall();
 	if (!wall3->Initialize(vec3(0.0f, -wall_l + wall_t, 0.0f), wall_l, wall_t, 2*wall_t))
 	{
 		wall3->TakeDown();
 		delete wall3;
-		return 0;
+		return error();
 	}
 	Wall* wall4 = new Wall();
 	if (!wall4->Initialize(vec3(-wall_l + wall_t, 0.0f, 0.0f), wall_t, wall_l, 2*wall_t))
 	{
 		wall4->TakeDown();
 		delete wall4;
-		return 0;
+		return error();
 	}
 	walls.push_back(wall1);
 	walls.push_back(wall2);
@@ -678,7 +739,7 @@ int main(int argc, char * argv[])
 	{
 		player->TakeDown();
 		delete player;
-		return 0;
+		return error();
 	}
 
 	// Variables to set the range of random starting positions. Arena is oriented at (0,0)
@@ -772,6 +833,16 @@ int main(int argc, char * argv[])
 	//}
 
 	glutMainLoop();
+
+	printf("Game contained %i targets.\n", numBalls);
+	printf("Game ends at time: %f.\n", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
+	if(targetsRemaining == 0)
+		printf("Game has been won.\n");
+	else
+		printf("Game has been lost.\n");
+	printf("Hit enter to exit:");
+	char c;
+	scanf("%c", &c);
 
 	return 0;
 }

@@ -12,6 +12,7 @@ public:
 	b2Body* body;
 	float rotation;
 	bool hit;
+	b2Vec2 hitVelocity;
 
 	Player();
 	bool Initialize(float radius, int slices, int stacks);
