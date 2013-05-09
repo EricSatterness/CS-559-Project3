@@ -9,9 +9,10 @@
 layout (location = 0) out vec4 FragColor;
 
 uniform sampler2D Tex1;
+uniform sampler2D Tex2;
 uniform int hit;
 
-in mat4 modelview;
+in mat3 normalMatrix;
 in vec3 origPosition;
 
 in vec3 color;
@@ -33,10 +34,14 @@ in vec3 ADS_3;
 flat in uint on_3;
 
 float theta, phi;
+vec3 d;
+vec3 norm;
+vec2 coord;
 vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, int shininess)
 {
 
-	vec3 n = normal;
+	vec3 n = normalize(normalMatrix * norm);
+
 	if (!gl_FrontFacing)
 		n = -n;
 	vec3 s = normalize(vec3(light_position - position));
@@ -60,33 +65,14 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 		spec = Ls * Ks * pow( max( dot(r,v), 0.0 ), shininess );
 
 
-	vec4 useColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);	
-	vec2 coord;
-	coord.y = theta/6.2831853;
-	coord.x = (phi + 1.570796327);
-	if(origPosition.x > 0)
-		coord.x = 3.141592654 - coord.x;
-	coord.x = coord.x/6.2831853;
-	coord.x = coord.x/2;
-	if(origPosition.x > 0)
-		coord.x = .5 - coord.x;
-	coord.x = 2.0f*coord.x;
-	coord.y = 2.0f*coord.y;
-	coord.y = 1.0f - coord.y;
-	
-	useColor = texture( Tex1, coord);
+	vec4 useColor = 2.5*texture( Tex1, coord);
+	useColor.a = 1.0f;
+	//useColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	if(hit==1)
 		useColor.x = .75;
-
+	//float pi = 3.141592654;
+	//useColor = vec4(theta/pi, 0.0f, 0.0f, 1.0f);
 	return useColor*vec4(ambient + diffuse + spec, 1.0f); 
-
-	//d.x = (d.x + 1)/2;
-	//d.y = (d.y + 1)/2;
-
-	//vec4 d = vec4(sin(16*theta), sin(16*phi), 0.0f, 1.0f);
-	//d = vec4(modelview * d);
-
-	//return d/(on_1 + on_2 + on_3);
 }
 
 void main()
@@ -100,8 +86,28 @@ void main()
 	theta = acos(origPosition.z/r);
 	phi = atan(origPosition.y/origPosition.x);
 				
-	vec4 d = vec4(sin(16*theta), sin(16*phi), 0.0f, 1.0f);
-	//d = vec4(modelview * d);
+	d = vec3(cos(16*phi), sin(16*phi), sin(16*theta));
+	d.x = (d.x + 1)/2;
+	d.y = (d.y + 1)/2;
+	d.z = (d.z + 1)/2;
+
+	coord.y = theta/6.2831853;
+	coord.x = (phi + 1.570796327);
+	if(origPosition.x > 0)
+		coord.x = 3.141592654 - coord.x;
+	coord.x = coord.x/6.2831853;
+	coord.x = coord.x/2;
+	if(origPosition.x > 0)
+		coord.x = .5 - coord.x;
+	coord.x = 2.0f*coord.x;
+	coord.y = 2.0f*coord.y;
+	coord.y = 1.0f - coord.y;
+
+	//d = normalize(d);
+	//norm = normal*d;
+	//norm = normal;
+	//norm = normal*vec3(d.y, 0, d.x);
+	norm = normal*texture( Tex2, coord).xyz;
 
 	FragColor = ads(light_position_1, ADS_1, on_1, Ka, Kd, Ks, shininess) + ads(light_position_2, ADS_2, on_2, Ka, Kd, Ks, shininess) + ads(light_position_3, ADS_3, on_3, Ka, Kd, Ks, shininess);
 	FragColor.a = 1.0f;

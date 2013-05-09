@@ -157,8 +157,6 @@
     <None Include="TargetShader.frag" />
     <None Include="TargetShader.vert" />
     <None Include="violentdays_large.jpg" />
-    <None Include="WoodShader.frag" />
-    <None Include="WoodShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

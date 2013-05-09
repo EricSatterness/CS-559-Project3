@@ -24,6 +24,10 @@
     <ClCompile Include="fbo.cpp" />
     <ClCompile Include="ImageTexture.cpp" />
     <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="avi_utils.cpp" />
+    <ClCompile Include="HalfCube.cpp" />
+    <ClCompile Include="ImageWriter.cpp" />
+    <ClCompile Include="Recorder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cube.h" />
@@ -49,6 +53,10 @@
     <ClInclude Include="FreeImage.h" />
     <ClInclude Include="ImageTexture.h" />
     <ClInclude Include="Skybox.h" />
+    <ClInclude Include="avi_utils.h" />
+    <ClInclude Include="HalfCube.h" />
+    <ClInclude Include="ImageWriter.h" />
+    <ClInclude Include="Recorder.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phongAds.frag" />

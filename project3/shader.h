@@ -42,6 +42,7 @@ public:
 	GLuint on2_handle;
 	GLuint on3_handle;
 	GLuint tex_handle;
+	GLuint tex_handle2;
 	GLuint hit_handle;
 
 	glm::vec4 Material_ADSS;

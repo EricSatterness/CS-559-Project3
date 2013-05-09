@@ -30,10 +30,10 @@ using namespace glm;
 float xRot = 0.0f;
 float yRot = 0.0f; 
 float zoom = 0.05f;
-ImageTexture targetTexture;
+ImageTexture targetTexture, targetNormals;
 Skybox skybox;
 FrameBufferObject fbo;
-Shader phongShader, targetShader, jumbotronShader, woodShader, imageShader;
+Shader phongShader, targetShader, jumbotronShader;
 Cube *jumbotronCube;
 
 #pragma region Data Structs
@@ -106,8 +106,7 @@ void CloseFunc()
 	phongShader.TakeDown();
 	targetShader.TakeDown();
 	jumbotronShader.TakeDown();
-	woodShader.TakeDown(); 
-	imageShader.TakeDown();
+	targetNormals.TakeDown();
 
 	targetTexture.TakeDown();
 	
@@ -655,17 +654,18 @@ int main(int argc, char * argv[])
 		return error();
 	if(!targetShader.Initialize("TargetShader.vert", "TargetShader.frag"))
 		return error();
+	if(!targetNormals.Initialize("normalEarth.jpg"))
+		return error();
+	glActiveTexture(GL_TEXTURE1);
+	targetNormals.Use();
+	glActiveTexture(GL_TEXTURE0);
 	if(!targetTexture.Initialize("earth.jpg"))
 		return error();
 	if(!jumbotronShader.Initialize("JumboTronShader.vert", "JumboTronShader.frag"))
 		return error();
-	if(!woodShader.Initialize("WoodShader.vert", "WoodShader.frag"))
-		return error();
 	if(!skybox.Initialize(arena_width*2.5f))
 		return error();
 	if(!fbo.Initialize(ivec2(2,2), NUMFRAMEBUFFERS))
-		return error();
-	if(!imageShader.Initialize("JumboTronCube.vert", "JumboTronCube.frag"))
 		return error();
 	currShader = &phongShader;
 	jumbotronCube = new Cube();
