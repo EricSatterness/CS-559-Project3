@@ -43,8 +43,6 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 
 	vec3 n = normalize(normalMatrix * norm);
 
-	if (!gl_FrontFacing)
-		n = -n;
 	vec3 s = normalize(vec3(light_position - position));
 	vec3 v = normalize(-position.xyz);
 	vec3 r = reflect(-s, n);
@@ -66,8 +64,8 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 		spec = Ls * Ks * pow( max( dot(r,v), 0.0 ), shininess );
 
 	int tmp = int(float(time)/5000);
-	int t = int(time) - 5000*tmp;
-	vec4 useColor = vec4(0.0f, 1.0, float(t)/5000, 1.0f);
+	float t = float(int(time) - 5000*tmp)/5000;
+	vec4 useColor = vec4(0.0f, 1.0, t, 1.0f);
 	//useColor = vec4(d, 1.0f);
 	if(hit==1)
 		useColor.x = .75;

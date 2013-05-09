@@ -35,8 +35,7 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 {
 
 	vec3 n = normal;
-	if (!gl_FrontFacing)
-		n = -n;
+	
 	vec3 s = normalize(vec3(light_position - position));
 	vec3 v = normalize(-position.xyz);
 	vec3 r = reflect(-s, n);

@@ -309,7 +309,7 @@ void mouseControlsRoutine()
 	{
 		player->hit = false;
 		//float tan = atan2(-v.y, v.x);
-		angle = 180.0f/3.14f * atan2(-v.y, v.x);
+		angle = (180.0f/3.14f) * atan2(-v.y, v.x);
 		//float tan = atan2(player->hitVelocity.y, -player->hitVelocity.x);
 		//angle = 180.0f/3.14f * tan;
 		if (angle < 0)
@@ -422,8 +422,13 @@ void DisplayStats()
 
 void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumbos, bool sky)
 {
-	b2Vec2 pos = player->body->GetPosition();
+	//uncomment to fix light to position
+	//light1.lightPosEyeCoords = glm::vec3(worldModelView * glm::vec4(light1.lightPos,1.0));
+	//light2.lightPosEyeCoords = glm::vec3(worldModelView * glm::vec4(light2.lightPos,1.0));
+	//light3.lightPosEyeCoords = glm::vec3(worldModelView * glm::vec4(light3.lightPos,1.0));
 
+	b2Vec2 pos = player->body->GetPosition();
+	
 	if(sky)
 		skybox.Draw(projection_matrix, worldModelView, window.size);
 	
@@ -438,20 +443,24 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 	{
 		targetShader.hit = moshballs[i]->displayTimer;
 		//if(moshballs[i]->displayTimer)
-		/*{
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
-			glViewport(0, 0, window.size.x, window.size.y);
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			b2Vec2 pos = moshballs[i]->body->GetPosition();
-			vec4 newPos = vec4(pos.x, pos.y, 2.0f, 1.0f);
-			newPos = (projection_matrix * worldModelView)*newPos;
-			glTranslatef(newPos.x*15, 0.0f, 0.0f);
-			freetype::print(our_font, window.size.x/2, window.size.y/2, std::to_string((long double)moshballs[i]->time).c_str());
-		}
-		targetTexture.Use();*/
+		//{			
+		//	glMatrixMode(GL_MODELVIEW);
+		//	glLoadMatrixf(glm::value_ptr(worldModelView));
+		//	//glLoadIdentity();
+		//	b2Vec2 pos = moshballs[i]->body->GetPosition();
+		//	vec4 newPos = vec4(pos.x, pos.y, 2.0f, 1.0f);
+		//	//newPos = (projection_matrix * worldModelView)*newPos;
+		//	//string s = std::to_string((long double)moshballs[i]->time);
+		//	//glCallLists(s.length(), GL_UNSIGNED_BYTE, s.c_str());
+		//	glPushMatrix();
+		//	//glLoadIdentity();
+		//	glTranslatef(newPos.x, newPos.y, newPos.z);
+		//	glScaled(0.1, 0.1, 1.0);
+		//	glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *)std::to_string((long double)moshballs[i]->time).c_str());
+		//	freetype::print(our_font, window.size.x/2, window.size.y/2, std::to_string((long double)moshballs[i]->time).c_str());
+		//	glPopMatrix();
+		//}
+		//targetTexture.Use();
 		if(i == 0)
 			currShader = &dynamicTarget;
 		else
@@ -493,13 +502,16 @@ void renderFirstPersonScene()
 	// X-axis is considered 0 degrees for the player's rotation. So start by looking at positive X-axis and then rotate from there
 	worldModelView = rotate(worldModelView, player->rotation + 90.0f, vec3(0.0f, 0.0f, 1.0f));
 	worldModelView = translate(worldModelView, vec3(-pos.x, -pos.y, 0.0f));
-			
+	
+	light1.on = false;
 	skybox.SwitchLight(1);
 	drawScene(projection_matrix, scale(translate(worldModelView, vec3(0.0f, 0.0f, -2.0f)), vec3(1.0f, 1.0f, -1.0f)), false, true, true);
-	skybox.SwitchLight(0);
-
+	
+	
 	glClear(GL_DEPTH_BUFFER_BIT);
-
+	
+	light1.on = true;
+	skybox.SwitchLight(0);	
 	drawScene(projection_matrix, worldModelView, false, true, true);
 
 }
@@ -843,6 +855,7 @@ int main(int argc, char * argv[])
 	BuildFont();										// Build The Font
 	our_font.init("test.TTF", 16);					    //Build the freetype font
 	//our_font.init("/usr/share/fonts/truetype/arial.ttf", 16);
+	
 	glutMainLoop();
 
 	printf("Game contained %i targets.\n", numBalls);
@@ -854,6 +867,7 @@ int main(int argc, char * argv[])
 	printf("Hit enter to exit:");
 	char c;
 	scanf("%c", &c);
+
 
 	return 0;
 }

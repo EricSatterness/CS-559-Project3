@@ -11,9 +11,9 @@ using namespace std;
 */
 
 Shader* currShader;
-LightInfo light1 = {glm::vec3(2.0f, 2.0f, -2.0f), glm::vec3(), 1};
+LightInfo light1 = {glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(), 1};
 LightInfo light2 = {glm::vec3(-2.0f, 2.0f, 2.0f), glm::vec3(), 0};
-LightInfo light3 = {glm::vec3(0.0f, 1.25f, -3.0f), glm::vec3(), 1};
+LightInfo light3 = {glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(), 1};
 float l3Intensity;
 
 // Use for ball timers
