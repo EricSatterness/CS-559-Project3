@@ -80,5 +80,7 @@
     <None Include="JumboTronShader.vert" />
     <None Include="SkyBoxShader.vert" />
     <None Include="TargetShader.vert" />
+    <None Include="DynamicSphere.frag" />
+    <None Include="DynamicSphere.vert" />
   </ItemGroup>
 </Project>

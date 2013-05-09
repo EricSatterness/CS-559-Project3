@@ -7,6 +7,7 @@
 #include "shader.h"
 #include <assert.h>
 #include "Globals.h"
+#include <GL\freeglut.h>
 
 using namespace std;
 using namespace glm;
@@ -38,6 +39,7 @@ Shader::Shader()
 
 	this->tex_handle = BAD_GL_VALUE;
 	this->tex_handle2 = BAD_GL_VALUE;
+	this->time_handle = BAD_GL_VALUE;
 
 	this->hit = 0;
 	this->seeThrough = 0;

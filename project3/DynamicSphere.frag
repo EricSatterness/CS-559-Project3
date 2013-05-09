@@ -11,6 +11,7 @@ layout (location = 0) out vec4 FragColor;
 uniform sampler2D Tex1;
 uniform sampler2D Tex2;
 uniform int hit;
+uniform float time;
 
 in mat3 normalMatrix;
 in vec3 origPosition;
@@ -64,10 +65,9 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 	if( sDotN > 0.0 )
 		spec = Ls * Ks * pow( max( dot(r,v), 0.0 ), shininess );
 
-
-	vec4 useColor = 2*texture( Tex1, coord);
-	useColor.a = 1.0f;
-	//useColor = vec4(0.0f, 1.0, 0.0f, 1.0f);
+	int tmp = int(float(time)/5000);
+	int t = int(time) - 5000*tmp;
+	vec4 useColor = vec4(0.0f, 1.0, float(t)/5000, 1.0f);
 	//useColor = vec4(d, 1.0f);
 	if(hit==1)
 		useColor.x = .75;

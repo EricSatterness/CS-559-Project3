@@ -15,6 +15,7 @@ Moshball::Moshball()
 	this->rotY = 0.0f;
 	this->rotMat = mat4(1.0f);
 
+	time = 0;
 	// Don't use a timer or threading. We already have a timer: the display method
 	//Start the timer
 	//this->Timer();
@@ -47,6 +48,7 @@ bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
 	
 	this->radius = radius;
 
+	sphere->color = vec3(0.0f, .5f, 0.0f);
 	if (!this->sphere->Initialize(radius, slices, stacks))
 		return false;
 

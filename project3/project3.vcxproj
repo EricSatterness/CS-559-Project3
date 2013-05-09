@@ -141,6 +141,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Debug\project3.exe" />
+    <None Include="DynamicSphere.frag" />
+    <None Include="DynamicSphere.vert" />
     <None Include="earth.jpg" />
     <None Include="grimmnight_large.jpg" />
     <None Include="interstellar_large.jpg" />

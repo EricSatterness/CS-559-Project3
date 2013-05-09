@@ -36,6 +36,7 @@ bool Player::Initialize(float radius, int slices, int stacks)
 	playerFixture.restitution = 1.0f;
 	this->body->CreateFixture(&playerFixture);
 
+	sphere->color = vec3(0.0f, 0.0f, 1.0f);
 	if (!this->sphere->Initialize(radius, slices, stacks))
 		return false;
 

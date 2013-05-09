@@ -32,7 +32,7 @@ float zoom = 0.05f;
 ImageTexture targetTexture, targetNormals;
 Skybox skybox;
 FrameBufferObject fbo;
-Shader phongShader, targetShader, jumbotronShader;
+Shader phongShader, targetShader, jumbotronShader, dynamicTarget, solidShader;
 Cube *jumbotronCube;
 
 #pragma region Data Structs
@@ -47,11 +47,6 @@ struct WindowData
 	bool wireframe;
 	int sceneIndex;
 } window;
-
-struct CameraData
-{
-
-};
 #pragma endregion
 
 #pragma region Variables
@@ -86,15 +81,6 @@ float32 speed = 30.0f;
 float32 timeStep = 1.0f / 60.0f;
 int32 velocityIterations = 6;
 int32 positionIterations = 2;
-
-// Freetype variables
-//FT_Library ftLibrary;
-//FT_Face ftFace;      /* handle to face object */
-//FT_GlyphSlot ftSlot;
-//FT_Matrix ftMatrix;              /* transformation matrix */
-//FT_UInt glyph_index;
-//FT_Vector pen;                 /* untransformed origin */
-//int n;
 #pragma endregion
 
 #pragma region FreeType
@@ -174,6 +160,8 @@ void CloseFunc()
 	KillFont();
 	our_font.clean();
 
+	solidShader.TakeDown();
+	dynamicTarget.TakeDown();
 	phongShader.TakeDown();
 	targetShader.TakeDown();
 	jumbotronShader.TakeDown();
@@ -445,13 +433,12 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 		
-	targetTexture.Use();
-	currShader = &targetShader;
+	targetTexture.Use();	
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
 		targetShader.hit = moshballs[i]->displayTimer;
-		/*if(moshballs[i]->displayTimer)
-		{
+		//if(moshballs[i]->displayTimer)
+		/*{
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
@@ -461,9 +448,14 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 			b2Vec2 pos = moshballs[i]->body->GetPosition();
 			vec4 newPos = vec4(pos.x, pos.y, 2.0f, 1.0f);
 			newPos = (projection_matrix * worldModelView)*newPos;
-			freetype::print(our_font, newPos.x, newPos.y, std::to_string((long double)moshballs[i]->time).c_str());
+			glTranslatef(newPos.x*15, 0.0f, 0.0f);
+			freetype::print(our_font, window.size.x/2, window.size.y/2, std::to_string((long double)moshballs[i]->time).c_str());
 		}
 		targetTexture.Use();*/
+		if(i == 0)
+			currShader = &dynamicTarget;
+		else
+			currShader = &targetShader;
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 	if(self)
@@ -649,16 +641,27 @@ void DisplayFunc()
 
 	DisplayCrosshairs();
 	DisplayStats();
-	DisplayInstructions();
+	//DisplayInstructions();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, window.size.x, window.size.y);
 	mat4 projection_matrix = glm::ortho(0.0f, (float)window.size.x/2, 0.0f, (float)window.size.y/2);
-	mat4 worldModelView  = translate(mat4(1.0f), vec3( window.size.x/2 - window.size.x/13, window.size.y/2 - window.size.y/13, 0.0f));
-	drawScene(projection_matrix, worldModelView, true, false, false);
-	
-	glutSwapBuffers();
+	mat4 worldModelView  = translate(mat4(1.0f), vec3( arena_width/2, arena_width/2, 0.0f));
+	currShader = &solidShader;
+	jumbotronCube->Draw(projection_matrix, scale(translate(worldModelView, vec3(0.0f, 0.0f, -1.5f)), vec3(arena_width, arena_width, 1.0f)), window.size);
+	for (int i = 0; i < (int)walls.size(); i++){
+		walls[i]->Draw(projection_matrix, worldModelView, window.size);
+	}
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		solidShader.hit = moshballs[i]->displayTimer;
+		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
+	}	
+	solidShader.hit = 0;
+	player->Draw(projection_matrix, worldModelView, window.size);
 
+
+	glutSwapBuffers();
 	
 	if(targetsRemaining == 0)
 		glutLeaveMainLoop();
@@ -717,7 +720,11 @@ int main(int argc, char * argv[])
 		cerr << "GLEW failed to initialize." << endl;
 		return error();
 	}
-
+	
+	if(!solidShader.Initialize("solid_shader.vert", "solid_shader.frag"))
+		return error();
+	if(!dynamicTarget.Initialize("DynamicSphere.vert", "DynamicSphere.frag"))
+		return error();
 	if(!phongShader.Initialize("phongAds.vert", "phongAds.frag"))
 		return error();
 	if(!targetShader.Initialize("TargetShader.vert", "TargetShader.frag"))
@@ -737,7 +744,7 @@ int main(int argc, char * argv[])
 		return error();
 	currShader = &phongShader;
 	jumbotronCube = new Cube();
-	jumbotronCube->color = vec3(.625f, .625f, .859f);
+	jumbotronCube->color = vec3(.5f, 1.0f, 1.0f);
 	if(!jumbotronCube->Initialize(1.0f))
 		return error();
 
