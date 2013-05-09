@@ -28,6 +28,7 @@
     <ClCompile Include="HalfCube.cpp" />
     <ClCompile Include="ImageWriter.cpp" />
     <ClCompile Include="Recorder.cpp" />
+    <ClCompile Include="FreeType.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cube.h" />
@@ -57,6 +58,7 @@
     <ClInclude Include="HalfCube.h" />
     <ClInclude Include="ImageWriter.h" />
     <ClInclude Include="Recorder.h" />
+    <ClInclude Include="FreeType.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phongAds.frag" />

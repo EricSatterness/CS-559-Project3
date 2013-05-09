@@ -27,6 +27,7 @@ public:
 	//DWORD WINAPI Timer(LPVOID lpParameter);
 	void CheckTimer(float currentTime);
 	void TakeDown();
+	int time;
 
 private:
 	Sphere* sphere;

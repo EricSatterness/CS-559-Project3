@@ -151,6 +151,7 @@ void Moshball::StartContact()
 void Moshball::CheckTimer(float currentTimeMinusPauses)
 {
 	// Only change the variables once
+	time = countDownTimerSeconds - (currentTimeMinusPauses - this->startTimeMinusPauses);
 	if ((currentTimeMinusPauses - this->startTimeMinusPauses) > countDownTimerSeconds && this->displayTimer == true)
 	{
 		//this->sphere->ChangeColor(vec3(0.27f, 1.0f, 0.0f));

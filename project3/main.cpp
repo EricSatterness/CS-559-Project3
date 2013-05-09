@@ -19,8 +19,7 @@
 #include "ImageTexture.h"
 #include "Skybox.h"
 #include "fbo.h"
-//#include <ft2build.h>
-//#include FT_FREETYPE_H
+#include "FreeType.h"
 
 using namespace std;
 using namespace glm;
@@ -98,10 +97,82 @@ int32 positionIterations = 2;
 //int n;
 #pragma endregion
 
+#pragma region FreeType
+// This holds all the information for the font that we are going to create.
+freetype::font_data our_font;	
+
+HDC			hDC=NULL;		// Private GDI Device Context
+HGLRC		hRC=NULL;		// Permanent Rendering Context
+HWND		hWnd=NULL;		// Holds Our Window Handle
+HINSTANCE	hInstance;		// Holds The Instance Of The Application
+
+GLuint	base;				// Base Display List For The Font Set
+GLfloat	cnt1;				// 1st Counter Used To Move Text & For Coloring
+GLfloat	cnt2;				// 2nd Counter Used To Move Text & For Coloring
+
+bool	keys[256];			// Array Used For The Keyboard Routine
+bool	active=TRUE;		// Window Active Flag Set To TRUE By Default
+bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
+
+GLvoid BuildFont(GLvoid)								// Build Our Bitmap Font
+{
+	HFONT	font;										// Windows Font ID
+	HFONT	oldfont;									// Used For Good House Keeping
+
+	base = glGenLists(96);								// Storage For 96 Characters
+
+	font = CreateFont(	-24,							// Height Of Font
+						0,								// Width Of Font
+						0,								// Angle Of Escapement
+						0,								// Orientation Angle
+						FW_BOLD,						// Font Weight
+						FALSE,							// Italic
+						FALSE,							// Underline
+						FALSE,							// Strikeout
+						ANSI_CHARSET,					// Character Set Identifier
+						OUT_TT_PRECIS,					// Output Precision
+						CLIP_DEFAULT_PRECIS,			// Clipping Precision
+						ANTIALIASED_QUALITY,			// Output Quality
+						FF_DONTCARE|DEFAULT_PITCH,		// Family And Pitch
+						L"Times New Roman");					// Font Name
+
+	oldfont = (HFONT)SelectObject(hDC, font);           // Selects The Font We Want
+	wglUseFontBitmaps(hDC, 32, 96, base);				// Builds 96 Characters Starting At Character 32
+	SelectObject(hDC, oldfont);							// Selects The Font We Want
+	DeleteObject(font);									// Delete The Font
+}
+
+GLvoid KillFont(GLvoid)									// Delete The Font List
+{
+	glDeleteLists(base, 96);							// Delete All 96 Characters
+}
+
+GLvoid glPrint(const char *fmt, ...)					// Custom GL "Print" Routine
+{
+	char		text[256];								// Holds Our String
+	va_list		ap;										// Pointer To List Of Arguments
+
+	if (fmt == NULL)									// If There's No Text
+		return;											// Do Nothing
+
+	va_start(ap, fmt);									// Parses The String For Variables
+	    vsprintf(text, fmt, ap);						// And Converts Symbols To Actual Numbers
+	va_end(ap);											// Results Are Stored In Text
+
+	glPushAttrib(GL_LIST_BIT);							// Pushes The Display List Bits
+	glListBase(base - 32);								// Sets The Base Character to 32
+	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);	// Draws The Display List Text
+	glPopAttrib();										// Pops The Display List Bits
+}
+
+#pragma endregion
 // Take care of taking down and deleting any items
 void CloseFunc()
 {
 	window.window_handle = -1;
+
+	KillFont();
+	our_font.clean();
 
 	phongShader.TakeDown();
 	targetShader.TakeDown();
@@ -291,25 +362,19 @@ void DisplayInstructions()
 		return;
 
 	vector<string> * s = &window.instructions;
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-	glColor3f(1.0f, 1.0f, 1.0f);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
 	glViewport(0, 0, window.size.x, window.size.y);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslated(10, 15 * s->size(), -5.5);
-	glScaled(0.1, 0.1, 1.0);
-	glLineWidth(1.0);
-	for (auto i = s->begin(); i < s->end(); ++i)
+
+	int y = 10;
+	for (auto i = s->rbegin(); i < s->rend(); ++i)
 	{
-		glPushMatrix();
-		glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) (*i).c_str());
-		glPopMatrix();
-		glTranslated(0, -150, 0);
+		freetype::print(our_font, 10, y, i->c_str());
+		y += 1.2*our_font.h;
 	}
 }
 
@@ -346,36 +411,25 @@ void DisplayStats()
 {
 	if (window.window_handle == -1)
 		return;
-
-	char time [16], targets [16];
-	//sprintf(time, "Time: %.2f", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
+	
+	char time [16];
 	sprintf_s(time, "Time: %.2f", ((paused ? timeLastPauseBegan : currentTime) - totalTimePaused));
-	//sprintf(targets, "Targets: %d", targetsRemaining);
-	sprintf_s(targets, "Targets: %d", targetsRemaining);
+	
+	string targets = "Targets: ";
+	string max = targets + std::to_string((long double)numBalls);
+	targets += std::to_string((long double)targetsRemaining);
 
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-	glColor3f(1.0f, 1.0f, 1.0f);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
 	glViewport(0, 0, window.size.x, window.size.y);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslated(window.size.x - 300, 30, -5.5);
-	glScaled(0.085, 0.085, 1.0);
-	glLineWidth(1.0);
+	
+	freetype::print(our_font, window.size.x - (max.length() + 12)*our_font.h, 10, targets.c_str());
+	freetype::print(our_font, window.size.x - 12*our_font.h, 10, time);
 
-	glPushMatrix();
-	glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) time);
-	glPopMatrix();
-	glTranslated(1700, 0, 0);
 
-	glPushMatrix();
-	glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *) targets);
-	glPopMatrix();
 }
 
 void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumbos, bool sky)
@@ -396,6 +450,20 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
 		targetShader.hit = moshballs[i]->displayTimer;
+		/*if(moshballs[i]->displayTimer)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(0, window.size.x, 0, window.size.y, 1, 10);
+			glViewport(0, 0, window.size.x, window.size.y);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			b2Vec2 pos = moshballs[i]->body->GetPosition();
+			vec4 newPos = vec4(pos.x, pos.y, 2.0f, 1.0f);
+			newPos = (projection_matrix * worldModelView)*newPos;
+			freetype::print(our_font, newPos.x, newPos.y, std::to_string((long double)moshballs[i]->time).c_str());
+		}
+		targetTexture.Use();*/
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 	if(self)
@@ -765,73 +833,9 @@ int main(int argc, char * argv[])
 	// Use a timer to control the frame rate.
 	glutTimerFunc(framePeriod, Timer, 0);
 
-
-	//// Set up freetype
-	//int error = FT_Init_FreeType( &ftLibrary );
-	//if (error)
-	//{
-	//	return 0;
- //   }
-
-	//error = FT_New_Face(ftLibrary,
-	//					"/usr/share/fonts/truetype/arial.ttf",
-	//					0,
-	//					&ftFace);
-	//if (error == FT_Err_Unknown_File_Format)
-	//{
-	//	return 0;
-	//}
-	//else
-	//{
-	//	return 0;
-	//}
-
-	//error = FT_Set_Char_Size(
- //           ftFace,    /* handle to face object           */
- //           0,       /* char_width in 1/64th of points  */
- //           16*64,   /* char_height in 1/64th of points */
- //           300,     /* horizontal device resolution    */
- //           300 );   /* vertical device resolution      */
-
-	//ftSlot = ftFace->glyph;                /* a small shortcut */
-
-	//float angle = 0.0f;
-	//char text[] = "hello";
-	//int num_chars = 5;
-	//int my_target_height = 400;
-
-	///* set up matrix */
-	//ftMatrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
-	//ftMatrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
-	//ftMatrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
-	//ftMatrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
-
-	///* the pen position in 26.6 cartesian space coordinates */
-	///* start at (300,200)                                   */
-	//pen.x = 300 * 64;
-	//pen.y = ( my_target_height - 200 ) * 64;
-	//
-	//for ( n = 0; n < num_chars; n++ )
-	//{
-	//	/* set transformation */
-	//	FT_Set_Transform( ftFace, &ftMatrix, &pen );
-	//	
-	//	/* load glyph image into the slot (erase previous one) */
-	//	error = FT_Load_Char( ftFace, text[n], FT_LOAD_RENDER );
-
-	//	if ( error )
-	//		continue;  /* ignore errors */
-
-	//	/* now, draw to our target surface (convert position) */
-	//	my_draw_bitmap( &ftSlot->bitmap,
-	//					ftSlot->bitmap_left,
-	//					my_target_height - ftSlot->bitmap_top );
-
-	//	/* increment pen position */
-	//	pen.x += ftSlot->advance.x;
-	//	pen.y += ftSlot->advance.y;
-	//}
-
+	BuildFont();										// Build The Font
+	our_font.init("test.TTF", 16);					    //Build the freetype font
+	//our_font.init("/usr/share/fonts/truetype/arial.ttf", 16);
 	glutMainLoop();
 
 	printf("Game contained %i targets.\n", numBalls);
