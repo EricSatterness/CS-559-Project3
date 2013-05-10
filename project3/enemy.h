@@ -6,7 +6,7 @@
 #include "Globals.h"
 #include "Sphere.h"
 
-class Player
+class Enemy
 {
 public:
 	b2Body* body;
@@ -15,7 +15,7 @@ public:
 	b2Vec2 hitVelocity;
 	bool movingForward;
 
-	Player();
+	Enemy();
 	bool Initialize(b2Vec2 center, float radius, int slices, int stacks);
 	void Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size);
 	void StartContact();

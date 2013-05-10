@@ -1,40 +1,40 @@
-#include "player.h"
+#include "Enemy.h"
 
 using namespace std;
 using namespace glm;
 
-Player::Player()
+Enemy::Enemy()
 {
-	// OpenGL sphere that will represent the player
+	// OpenGL sphere that will represent the Enemy
 	this->sphere = new Sphere(vec3(0.0f, 0.3f, 1.0f));
 }
 
-bool Player::Initialize(b2Vec2 center, float radius, int slices, int stacks)
+bool Enemy::Initialize(b2Vec2 center, float radius, int slices, int stacks)
 {
 	this->rotation = 0.0f;
 	this->hit = false;
 
-	// Make the player's Box2D circle
-	b2BodyDef playerDef;
-	playerDef.type = b2_dynamicBody;
-	playerDef.position.Set(center.x, center.y);
-	//playerDef.bullet = true;
-	this->body = world.CreateBody(&playerDef);
+	// Make the Enemy's Box2D circle
+	b2BodyDef EnemyDef;
+	EnemyDef.type = b2_dynamicBody;
+	EnemyDef.position.Set(center.x, center.y);
+	//EnemyDef.bullet = true;
+	this->body = world.CreateBody(&EnemyDef);
 
 	box2dUserData *u = new box2dUserData();
-	u->objectType = OBJECT_TYPE_PLAYER;
+	u->objectType = OBJECT_TYPE_ENEMY;
 	u->object = this;
 	this->body->SetUserData(u);
 
-	b2CircleShape playerShape;
-	playerShape.m_radius = radius;
+	b2CircleShape EnemyShape;
+	EnemyShape.m_radius = radius;
 
-	b2FixtureDef playerFixture;
-	playerFixture.shape = &playerShape;
-	playerFixture.density = 0.1f;
-	playerFixture.friction = 0.3f;
-	playerFixture.restitution = 1.0f;
-	this->body->CreateFixture(&playerFixture);
+	b2FixtureDef EnemyFixture;
+	EnemyFixture.shape = &EnemyShape;
+	EnemyFixture.density = 0.1f;
+	EnemyFixture.friction = 0.3f;
+	EnemyFixture.restitution = 1.0f;
+	this->body->CreateFixture(&EnemyFixture);
 
 	sphere->color = vec3(0.0f, 0.0f, 1.0f);
 	if (!this->sphere->Initialize(radius, slices, stacks))
@@ -43,7 +43,7 @@ bool Player::Initialize(b2Vec2 center, float radius, int slices, int stacks)
 	return true;
 }
 
-void Player::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size)
+void Enemy::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::ivec2 & size)
 {
 	// Translate modelview based on box2D position
 	b2Vec2 position = this->body->GetPosition();
@@ -52,7 +52,7 @@ void Player::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::
 	this->sphere->Draw(projection, m, size);
 }
 
-void Player::StartContact()
+void Enemy::StartContact()
 {
 	//this->hitVelocity = this->body->GetLinearVelocity();
 	this->hit = true;
@@ -60,7 +60,7 @@ void Player::StartContact()
 
 	////float tan = atan2(-v.y, v.x);
 	//float angle = 180.0f/3.14f * atan2(-v.y, v.x);
-	////float tan = atan2(player->hitVelocity.y, -player->hitVelocity.x);
+	////float tan = atan2(Enemy->hitVelocity.y, -Enemy->hitVelocity.x);
 	////angle = 180.0f/3.14f * tan;
 	//if (angle < 0)
 	//	angle += 360;
@@ -69,7 +69,7 @@ void Player::StartContact()
 	//this->rotation = angle;
 }
 
-void Player::TakeDown()
+void Enemy::TakeDown()
 {
 	this->sphere->TakeDown();
 	delete this->sphere;

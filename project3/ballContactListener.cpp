@@ -25,6 +25,22 @@ void BallContactListener::BeginContact(b2Contact* contact)
 		PlaySound(TEXT("./media/anvil-impact.wav"),NULL,SND_FILENAME|SND_ASYNC);
 	}
 
+	// Player collides with enemy
+	else if (udA->objectType == OBJECT_TYPE_ENEMY && udB->objectType == OBJECT_TYPE_PLAYER)
+	{
+		static_cast<Enemy*>(udA->object)->StartContact();
+		static_cast<Player*>(udB->object)->StartContact();
+
+		PlaySound(TEXT("./media/anvil-impact.wav"),NULL,SND_FILENAME|SND_ASYNC);
+	}
+	else if (udA->objectType == OBJECT_TYPE_PLAYER && udB->objectType == OBJECT_TYPE_ENEMY)
+	{
+		static_cast<Enemy*>(udB->object)->StartContact();
+		static_cast<Player*>(udA->object)->StartContact();
+
+		PlaySound(TEXT("./media/anvil-impact.wav"),NULL,SND_FILENAME|SND_ASYNC);
+	}
+
 	// When a ball collides with another ball
 	if (udA->objectType == OBJECT_TYPE_MOSHBALL && udB->objectType == OBJECT_TYPE_MOSHBALL)
 	{
@@ -54,6 +70,17 @@ void BallContactListener::BeginContact(b2Contact* contact)
 	}
 
 	else if (udA->objectType == OBJECT_TYPE_MOSHBALL && udB->objectType == OBJECT_TYPE_WALL)
+	{
+		PlaySound(TEXT("./media/metal-impact.wav"),NULL,SND_FILENAME|SND_ASYNC);
+	}
+
+	// When the enemy collides with a wall
+	else if (udA->objectType == OBJECT_TYPE_WALL && udB->objectType == OBJECT_TYPE_ENEMY)
+	{
+		PlaySound(TEXT("./media/metal-impact.wav"),NULL,SND_FILENAME|SND_ASYNC);
+	}
+
+	else if (udA->objectType == OBJECT_TYPE_ENEMY && udB->objectType == OBJECT_TYPE_WALL)
 	{
 		PlaySound(TEXT("./media/metal-impact.wav"),NULL,SND_FILENAME|SND_ASYNC);
 	}

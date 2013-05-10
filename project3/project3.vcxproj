@@ -86,6 +86,7 @@
     <ClCompile Include="Curtain.cpp" />
     <ClCompile Include="cylinder.cpp" />
     <ClCompile Include="disk.cpp" />
+    <ClCompile Include="enemy.cpp" />
     <ClCompile Include="fbo.cpp" />
     <ClCompile Include="FreeType.cpp" />
     <ClCompile Include="Globals.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="Curtain.h" />
     <ClInclude Include="cylinder.h" />
     <ClInclude Include="disk.h" />
+    <ClInclude Include="enemy.h" />
     <ClInclude Include="fbo.h" />
     <ClInclude Include="FreeImage.h" />
     <ClInclude Include="FreeType.h" />

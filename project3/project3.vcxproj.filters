@@ -29,6 +29,7 @@
     <ClCompile Include="ImageWriter.cpp" />
     <ClCompile Include="Recorder.cpp" />
     <ClCompile Include="FreeType.cpp" />
+    <ClCompile Include="enemy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cube.h" />
@@ -59,6 +60,7 @@
     <ClInclude Include="ImageWriter.h" />
     <ClInclude Include="Recorder.h" />
     <ClInclude Include="FreeType.h" />
+    <ClInclude Include="enemy.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phongAds.frag" />

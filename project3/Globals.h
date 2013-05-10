@@ -36,6 +36,7 @@ extern float box2d_scale;
 const int OBJECT_TYPE_PLAYER = 0;
 const int OBJECT_TYPE_MOSHBALL = 1;
 const int OBJECT_TYPE_WALL = 2;
+const int OBJECT_TYPE_ENEMY = 3;
 
 struct box2dUserData
 {

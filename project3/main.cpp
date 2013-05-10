@@ -15,6 +15,7 @@
 #include "Render.h"
 #include "wall.h"
 #include "player.h"
+#include "enemy.h"
 #include "moshball.h"
 #include "ImageTexture.h"
 #include "Skybox.h"
@@ -79,7 +80,8 @@ float wall_l = (arena_width / 2.0f) + wall_t;	// Wall length. Need to add thickn
 
 /* Pointers */
 vector<Wall *> walls;
-Player* player;
+Player *player;
+Enemy *enemy;
 vector<Moshball *> moshballs;
 
 /* Box2D Variables */
@@ -202,6 +204,12 @@ void CloseFunc()
 	{
 		player->TakeDown();
 		delete player;
+	}
+
+	if (enemy != NULL)
+	{
+		enemy->TakeDown();
+		delete enemy;
 	}
 
 	for (int i = 0; i < (int)moshballs.size(); i++)
@@ -393,6 +401,17 @@ void mouseControlsRoutine()
 		player->body->SetLinearVelocity(b2Vec2(-velocity.x, velocity.y));
 }
 
+void enemyMovementRoutine()
+{
+	// Handle the player's reflection when it collides with something
+	b2Vec2 v = enemy->body->GetLinearVelocity();
+	float len = sqrtf(v.x*v.x + v.y*v.y);
+	v.x /= len;
+	v.y /= len;
+
+	v *= 10.0f;
+}
+
 // Draws the instructions. We will take these off once we get the god-view in place
 void DisplayInstructions()
 {
@@ -486,9 +505,12 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 	{
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
-
+	 
+	currShader = &phongShader;
 	if(self)
 		player->Draw(projection_matrix, worldModelView, window.size);
+
+	enemy->Draw(projection_matrix, worldModelView, window.size);
 
 	if(jumbos)
 	{
@@ -631,7 +653,9 @@ void renderThirdPersonScene()
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 
+	currShader = &phongShader;
 	player->Draw(projection_matrix, worldModelView, window.size);
+	enemy->Draw(projection_matrix, worldModelView, window.size);
 
 	targetTexture.Use();
 	currShader = &targetShader;
@@ -766,8 +790,11 @@ void DisplayFunc()
 	if (window.window_handle == -1)
 		return;
 
-	if (!paused)
+	/*if (!paused)
+	{
 		mouseControlsRoutine();
+		enemyMovementRoutine();
+	}*/
 
 	loops = 0;
 	// Update game state at a constant rate and update frames as fast as possible
@@ -776,6 +803,7 @@ void DisplayFunc()
 		if (!paused)
 		{
 			mouseControlsRoutine();
+			enemyMovementRoutine();
 
 			// Instruct the world to perform a single step of simulation.
 			// It is generally best to keep the time step and iterations fixed.
@@ -840,6 +868,7 @@ void DisplayFunc()
 	}	
 	solidShader.hit = 0;
 	player->Draw(projection_matrix, worldModelView, window.size);
+	enemy->Draw(projection_matrix, worldModelView, window.size);
 
 	
 	if (!paused)
@@ -986,18 +1015,42 @@ int main(int argc, char * argv[])
 		delete wall4;
 		return error();
 	}
+	Wall* wall5 = new Wall();
+	if (!wall5->Initialize(vec3(26.4f, 0.0f, 0.0f), wall_t, 13.2f, 2*wall_t))
+	{
+		wall5->TakeDown();
+		delete wall5;
+		return error();
+	}
+	Wall* wall6 = new Wall();
+	if (!wall6->Initialize(vec3(-26.4f, 0.0f, 0.0f), wall_t, 13.2f, 2*wall_t))
+	{
+		wall6->TakeDown();
+		delete wall6;
+		return error();
+	}
 	walls.push_back(wall1);
 	walls.push_back(wall2);
 	walls.push_back(wall3);
 	walls.push_back(wall4);
+	walls.push_back(wall5);
+	walls.push_back(wall6);
 	
 	player = new Player();
-	if (!player->Initialize(ballRadius, ballSlices, ballStacks))
+	if (!player->Initialize(b2Vec2(0.0f, 0.0f), ballRadius, ballSlices, ballStacks))
 	{
 		player->TakeDown();
 		delete player;
 		return error();
 	}
+	enemy = new Enemy();
+	if (!enemy->Initialize(b2Vec2(5.0f, 5.0f), ballRadius, ballSlices, ballStacks))
+	{
+		enemy->TakeDown();
+		delete enemy;
+		return error();
+	}
+	enemy->body->SetLinearVelocity(b2Vec2(-1.0f, 3.0f));
 
 	// Variables to set the range of random starting positions. Arena is oriented at (0,0)
 	float position_range = arena_width - (ballRadius * 2.0f);

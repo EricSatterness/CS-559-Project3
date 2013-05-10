@@ -3,6 +3,7 @@
 #include "Globals.h"
 #include "player.h"
 #include "moshball.h"
+#include "enemy.h"
 #include <MMSystem.h>
 #include <iostream>
 #include <Windows.h>
