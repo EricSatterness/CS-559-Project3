@@ -160,7 +160,7 @@ GLvoid glPrint(const char *fmt, ...)					// Custom GL "Print" Routine
 		return;											// Do Nothing
 
 	va_start(ap, fmt);									// Parses The String For Variables
-	    vsprintf(text, fmt, ap);						// And Converts Symbols To Actual Numbers
+	    vsprintf_s(text, fmt, ap);						// And Converts Symbols To Actual Numbers
 	va_end(ap);											// Results Are Stored In Text
 
 	glPushAttrib(GL_LIST_BIT);							// Pushes The Display List Bits
@@ -408,11 +408,11 @@ void DisplayInstructions()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	int y = 10;
+	float y = 10.0f;
 	for (auto i = s->rbegin(); i < s->rend(); ++i)
 	{
-		freetype::print(true, our_font, 10, y, i->c_str());
-		y += 1.2*our_font.h;
+		freetype::print(true, our_font, 10.0f, y, i->c_str());
+		y += 1.2f*our_font.h;
 	}
 }
 
@@ -563,7 +563,7 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 			m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 			glLoadMatrixf(value_ptr(m));
 
-			freetype::print(false, our_font, 0, 0, std::to_string((long double)moshballs[i]->time + 1).c_str());
+			freetype::print(false, our_font, 0.0f, 0.0f, std::to_string((long double)moshballs[i]->time + 1).c_str());
 		}
 		if(i%2 == 0)
 			currShader = &dynamicTarget;
@@ -863,7 +863,7 @@ void DisplayFunc()
 int error()
 {
 	char c;
-	scanf("%c", &c);
+	scanf_s("%c", &c);
 	return 0;
 }
 
@@ -1041,7 +1041,7 @@ int main(int argc, char * argv[])
 		printf("Game has been lost.\n");
 	printf("Hit enter to exit:");
 	char c;
-	scanf("%c", &c);
+	scanf_s("%c", &c);
 
 	return 0;
 }

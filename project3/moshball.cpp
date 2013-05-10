@@ -14,8 +14,8 @@ Moshball::Moshball()
 	this->rotX = 0.0f;
 	this->rotY = 0.0f;
 	//this->rotMat = mat4(1.0f);
-
-	time = 0;
+	this->time = 0;
+	
 	// Don't use a timer or threading. We already have a timer: the display method
 	//Start the timer
 	//this->Timer();
@@ -166,7 +166,7 @@ void Moshball::StartContact()
 void Moshball::CheckTimer(float currentTimeMinusPauses)
 {
 	// Only change the variables once
-	time = countDownTimerSeconds - (currentTimeMinusPauses - this->startTimeMinusPauses);
+	this->time = (int)(countDownTimerSeconds - (currentTimeMinusPauses - this->startTimeMinusPauses));
 	if ((currentTimeMinusPauses - this->startTimeMinusPauses) > countDownTimerSeconds && this->displayTimer == true)
 	{
 		//this->sphere->ChangeColor(vec3(0.27f, 1.0f, 0.0f));

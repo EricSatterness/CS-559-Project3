@@ -153,7 +153,7 @@ void DebugDraw::DrawString(int x, int y, const char *string, ...)
 
 	va_list arg;
 	va_start(arg, string);
-	vsprintf(buffer, string, arg);
+	vsprintf_s(buffer, string, arg);
 	va_end(arg);
 
 	glMatrixMode(GL_PROJECTION);

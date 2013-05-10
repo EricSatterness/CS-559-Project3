@@ -31,7 +31,7 @@ bool ImageTexture::Initialize(int w, int h, glm::ivec3 initColor)
 		textura[j*4+0]= initColor.x;
 		textura[j*4+1]= initColor.y;
 		textura[j*4+2]= initColor.z;
-		textura[j*4+3]= 1.0f;
+		textura[j*4+3]= (GLubyte)1.0f;
 	}
  
 	glGenTextures(1, &handle);

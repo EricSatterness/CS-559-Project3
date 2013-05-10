@@ -20,6 +20,7 @@ public:
 	float rotX, rotY;
 	//glm::mat4 rotMat;
 	glm::fquat rotQuat;
+	int time;
 
 	Moshball();
 	bool Initialize(glm::vec3 center, float radius, int slices, int stacks);
@@ -28,7 +29,6 @@ public:
 	//DWORD WINAPI Timer(LPVOID lpParameter);
 	void CheckTimer(float currentTime);
 	void TakeDown();
-	int time;
 
 private:
 	Sphere* sphere;
