@@ -29,6 +29,8 @@
 using namespace std;
 using namespace glm;
 
+#define RECORD false
+
 #define NUMFRAMEBUFFERS 3
 
 // OpenAL
@@ -44,7 +46,8 @@ Skybox skybox;
 FrameBufferObject fbo;
 Shader phongShader, targetShader, jumbotronShader, dynamicTarget, solidShader, dynamicColor, brickShader;
 Cube *jumbotronCube;
-//ImageWriter* recorder = NULL;
+
+ImageWriter* recorder = NULL;
 
 #pragma region Data Structs
 struct WindowData
@@ -180,11 +183,11 @@ void CloseFunc()
 	KillFont();
 	our_font.clean();
 
-	/*if(recorder != NULL)
+	if(RECORD  && recorder != NULL)
 	{
 		recorder->EndRecording();
 		delete recorder;
-	}*/
+	}
 
 	dynamicColor.TakeDown();
 	solidShader.TakeDown();
@@ -240,15 +243,18 @@ void ReshapeFunc(int w, int h)
 		window.window_aspect = float(w) / float(h);
 
 		window.origin = vec2((float)window.size.x / 2.0f, (float)window.size.y / 2.0f);
-
-		/*if(recorder != NULL)
+		
+		if(RECORD)
 		{
-			recorder->EndRecording();
-			delete recorder;
+			if(recorder != NULL)
+			{
+				recorder->EndRecording();
+				delete recorder;
+			}
+			recorder = new ImageWriter(w, h);
+			if(!recorder->InitRecording("TestVid.avi", 50))
+				printf("problem on resize\n");
 		}
-		recorder = new ImageWriter(w, h);
-		if(!recorder->InitRecording("TestVid.avi", 20))
-			printf("problem");*/
 
 		fbo.TakeDown();
 		if(!fbo.Initialize(window.size, NUMFRAMEBUFFERS))
@@ -487,7 +493,7 @@ void DisplayStats()
 	freetype::print(true, our_font, window.size.x - 12*our_font.h, 10, time);
 }
 
-void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumbos, bool sky)
+void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumbos, bool sky, bool reflection)
 {
 	//uncomment to fix light to position
 	//light1.lightPosEyeCoords = glm::vec3(worldModelView * glm::vec4(light1.lightPos,1.0));
@@ -531,12 +537,40 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
 		*/
 	}
-
-	targetTexture.Use();
-	currShader = &targetShader;
 	b2Vec2 playerPos = player->body->GetPosition();
 	b2Vec2 ballToPlayerVec;
 	float angle = 0.0f;
+	if(!reflection)
+	{
+		for (int i = 0; i < (int)moshballs.size(); i++)
+		{
+			// Draw the timer text
+			if(moshballs[i]->displayTimer)
+			{
+				// Offset by the ball's position
+				glMatrixMode(GL_PROJECTION);
+				glLoadMatrixf(glm::value_ptr(projection_matrix));
+				glMatrixMode(GL_MODELVIEW);
+				b2Vec2 pos = moshballs[i]->body->GetPosition();
+				mat4 m = translate(worldModelView, vec3(pos.x - 0.5f, pos.y + 0.5f, 2.0f));
+				m = rotate(m, 90.0f, vec3(1.0f, 0.0f, 0.0f));
+
+				// Rotate to face player
+				b2Vec2 ballPos = moshballs[i]->body->GetPosition();
+				ballToPlayerVec = playerPos - ballPos;
+				angle = 180.0f/3.14f * atan2(ballToPlayerVec.y, ballToPlayerVec.x);
+				m = rotate(m, angle + 90.0f, vec3(0.0f, 1.0f, 0.0f));
+
+				// Make text smaller
+				m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+				glLoadMatrixf(value_ptr(m));
+
+				freetype::print(false, our_font, 0, 0, std::to_string((long double)moshballs[i]->time + 1).c_str());
+			}
+		}
+	}
+	targetTexture.Use();
+	currShader = &targetShader;
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
 		targetShader.hit = moshballs[i]->displayTimer;
@@ -563,35 +597,10 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 				glEnd();
 			}
 		}
-
-		// Draw the timer text
-		if(moshballs[i]->displayTimer)
-		{
-			// Offset by the ball's position
-			glMatrixMode(GL_PROJECTION);
-			glLoadMatrixf(glm::value_ptr(projection_matrix));
-			glMatrixMode(GL_MODELVIEW);
-			b2Vec2 pos = moshballs[i]->body->GetPosition();
-			mat4 m = translate(worldModelView, vec3(pos.x - 0.5f, pos.y + 0.5f, 2.0f));
-			m = rotate(m, 90.0f, vec3(1.0f, 0.0f, 0.0f));
-
-			// Rotate to face player
-			b2Vec2 ballPos = moshballs[i]->body->GetPosition();
-			ballToPlayerVec = playerPos - ballPos;
-			angle = 180.0f/3.14f * atan2(ballToPlayerVec.y, ballToPlayerVec.x);
-			m = rotate(m, angle + 90.0f, vec3(0.0f, 1.0f, 0.0f));
-
-			// Make text smaller
-			m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-			glLoadMatrixf(value_ptr(m));
-
-			freetype::print(false, our_font, 0.0f, 0.0f, std::to_string((long double)moshballs[i]->time + 1).c_str());
-		}
 		if(i%2 == 0)
 			currShader = &dynamicTarget;
 		else
 			currShader = &targetShader;
-		targetTexture.Use();
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 }
@@ -617,14 +626,14 @@ void renderFirstPersonScene()
 	
 	light1.on = false;
 	skybox.SwitchLight(1);
-	drawScene(projection_matrix, scale(translate(worldModelView, vec3(0.0f, 0.0f, -2.0f)), vec3(1.0f, 1.0f, -1.0f)), false, true, true);
+	drawScene(projection_matrix, scale(translate(worldModelView, vec3(0.0f, 0.0f, -2.0f)), vec3(1.0f, 1.0f, -1.0f)), false, true, true, true);
 	
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	light1.on = true;
 	skybox.SwitchLight(0);	
-	drawScene(projection_matrix, worldModelView, false, true, true);
+	drawScene(projection_matrix, worldModelView, false, true, true, false);
 
 }
 
@@ -880,8 +889,8 @@ void DisplayFunc()
 			moshballs[i]->CheckTimer(currTimeMinusPauses);
 		}
 	}
-	
-	//recorder->RecordImage();
+	if(RECORD)
+		recorder->RecordImage();
 	glutSwapBuffers();
 	glutPostRedisplay();
 	

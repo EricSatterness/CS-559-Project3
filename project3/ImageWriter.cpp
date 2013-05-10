@@ -203,8 +203,8 @@ bool ImageWriter::_SaveImage(string path)
 	glReadPixels(0, 0, width, height, GL_BGR_EXT, GL_UNSIGNED_BYTE, pBits);
 
 	//chop out the blank region normally covered by glui
-	int newWidth = width;
-	int height = height; 
+	int newWidth = this->width;
+	int height = this->height; 
 
 	int newRasterWidth = newWidth + ((newWidth % 4 == 0) ? 0 : (4 - (newWidth % 4)));
 
