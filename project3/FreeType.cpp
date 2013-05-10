@@ -198,6 +198,17 @@ inline void pushScreenCoordinateMatrix() {
 	glPopAttrib();
 }
 
+//inline void pushScreenCoordinateMatrix() {
+//	glPushAttrib(GL_TRANSFORM_BIT);
+//	GLint	viewport[4];
+//	glGetIntegerv(GL_VIEWPORT, viewport);
+//	glMatrixMode(GL_PROJECTION);
+//	glPushMatrix();
+//	glLoadIdentity();
+//	gluOrtho2D(viewport[0],viewport[2],viewport[1],viewport[3]);
+//	glPopAttrib();
+//}
+
 /// Pops the projection matrix without changing the current
 /// MatrixMode.
 inline void pop_projection_matrix() {
@@ -209,10 +220,11 @@ inline void pop_projection_matrix() {
 
 ///Much like Nehe's glPrint function, but modified to work
 ///with freetype fonts.
-void print(const font_data &ft_font, float x, float y, const char *fmt, ...)  {
+void print(bool printOnScreen, const font_data &ft_font, float x, float y, const char *fmt, ...)  {
 	
 	// We want a coordinate system where things coresponding to window pixels.
-	pushScreenCoordinateMatrix();					
+	if (printOnScreen)
+		pushScreenCoordinateMatrix();					
 	
 	GLuint font=ft_font.list_base;
 	float h=ft_font.h/.63f;						//We make the height about 1.5* that of
@@ -300,7 +312,8 @@ void print(const font_data &ft_font, float x, float y, const char *fmt, ...)  {
 
 	glPopAttrib();		
 
-	pop_projection_matrix();
+	if (printOnScreen)
+		pop_projection_matrix();
 }
 
 }

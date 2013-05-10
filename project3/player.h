@@ -13,6 +13,7 @@ public:
 	float rotation;
 	bool hit;
 	b2Vec2 hitVelocity;
+	bool movingForward;
 
 	Player();
 	bool Initialize(float radius, int slices, int stacks);

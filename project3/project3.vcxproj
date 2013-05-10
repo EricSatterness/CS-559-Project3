@@ -50,13 +50,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\FreeGLUT\include;C:\Program Files %28x86%29\glm-0.9.3.4;C:\Program Files %28x86%29\glew-1.7.0\include;./;C:\Program Files %28x86%29\freetype-2.4.6\include;.\FreeType\include\freetype2;.\FreeType\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\FreeGLUT\include;C:\Program Files %28x86%29\glm-0.9.3.4;C:\Program Files %28x86%29\glew-1.7.0\include;./;.\FreeType\include\freetype2;.\FreeType\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\FreeGLUT\lib;C:\Program Files %28x86%29\glew-1.7.0\lib;./lib;.\FreeType\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;glew32.lib;Box2D.lib;FreeImage.lib;libfreetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;Box2D_debug.lib;FreeImage.lib;libfreetype.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -68,7 +68,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\FreeGLUT\include;C:\Program Files %28x86%29\glm-0.9.3.4;C:\Program Files %28x86%29\glew-1.7.0\include;./;C:\Program Files %28x86%29\freetype-2.4.6\include;.\FreeType\include\freetype2;.\FreeType\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\FreeGLUT\include;C:\Program Files %28x86%29\glm-0.9.3.4;C:\Program Files %28x86%29\glew-1.7.0\include;./;.\FreeType\include\freetype2;.\FreeType\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,7 +76,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\FreeGLUT\lib;C:\Program Files %28x86%29\glew-1.7.0\lib;./lib;.\FreeType\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;glew32.lib;Box2D.lib;FreeImage.lib;libfreetype.lib;libfreetype-bcc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;Box2D_release.lib;FreeImage.lib;libfreetype.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -141,6 +141,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Debug\project3.exe" />
+    <None Include="brick_shader.frag" />
+    <None Include="brick_shader.vert" />
     <None Include="DynamicColor.frag" />
     <None Include="DynamicColor.vert" />
     <None Include="DynamicSphere.frag" />

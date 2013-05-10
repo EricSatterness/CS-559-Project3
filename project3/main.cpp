@@ -20,11 +20,20 @@
 #include "Skybox.h"
 #include "fbo.h"
 #include "FreeType.h"
+#include "ImageWriter.h"
+#include <MMSystem.h>
+#include <iostream>
+#include <Windows.h>
 
 using namespace std;
 using namespace glm;
 
 #define NUMFRAMEBUFFERS 3
+
+// OpenAL
+#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+#define NUM_ENVIRONMENTS 1
 
 float xRot = 0.0f;
 float yRot = 0.0f; 
@@ -32,8 +41,9 @@ float zoom = 0.05f;
 ImageTexture targetTexture, targetNormals;
 Skybox skybox;
 FrameBufferObject fbo;
-Shader phongShader, targetShader, jumbotronShader, dynamicTarget, solidShader, dynamicColor;
+Shader phongShader, targetShader, jumbotronShader, dynamicTarget, solidShader, dynamicColor, brickShader;
 Cube *jumbotronCube;
+//ImageWriter* recorder = NULL;
 
 #pragma region Data Structs
 struct WindowData
@@ -45,6 +55,7 @@ struct WindowData
 	mat4 projection_matrix, modelview_matrix;
 	vector<string> instructions;
 	bool wireframe;
+	bool displayVelocityVecs;
 	int sceneIndex;
 } window;
 #pragma endregion
@@ -81,6 +92,13 @@ float32 speed = 30.0f;
 float32 timeStep = 1.0f / 60.0f;
 int32 velocityIterations = 6;
 int32 positionIterations = 2;
+
+const int TICKS_PER_SECOND = 50;
+const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
+const int MAX_FRAMESKIP = 10;
+float next_game_tick;
+int loops;
+
 #pragma endregion
 
 #pragma region FreeType
@@ -160,6 +178,12 @@ void CloseFunc()
 	KillFont();
 	our_font.clean();
 
+	/*if(recorder != NULL)
+	{
+		recorder->EndRecording();
+		delete recorder;
+	}*/
+
 	dynamicColor.TakeDown();
 	solidShader.TakeDown();
 	dynamicTarget.TakeDown();
@@ -209,6 +233,15 @@ void ReshapeFunc(int w, int h)
 
 		window.origin = vec2((float)window.size.x / 2.0f, (float)window.size.y / 2.0f);
 
+		/*if(recorder != NULL)
+		{
+			recorder->EndRecording();
+			delete recorder;
+		}
+		recorder = new ImageWriter(w, h);
+		if(!recorder->InitRecording("TestVid.avi", 20))
+			printf("problem");*/
+
 		fbo.TakeDown();
 		if(!fbo.Initialize(window.size, NUMFRAMEBUFFERS))
 			return;
@@ -243,6 +276,9 @@ void KeyboardFunc(unsigned char c, int x, int y)
 			timeLastPauseBegan = currentTime;
 		}
 		paused = !paused;
+		break;
+	case 'd':
+		window.displayVelocityVecs = !window.displayVelocityVecs;
 		break;
 	case '=':
 	case '+':
@@ -309,14 +345,18 @@ void mouseControlsRoutine()
 	if (player->hit)
 	{
 		player->hit = false;
-		//float tan = atan2(-v.y, v.x);
-		angle = (180.0f/3.141592654f) * atan2(-v.y, v.x);
-		//float tan = atan2(player->hitVelocity.y, -player->hitVelocity.x);
-		//angle = 180.0f/3.14f * tan;
+
+		// Check which direction we should rotate the player after bouncing
+		if (player->movingForward)
+			angle = 180.0f/3.14f * atan2(-v.y, v.x);
+		else
+			angle = 180.0f/3.14f * atan2(v.y, -v.x);
+
+		// atan2 goes -180 to 180. We have been using 0 to 360 elsewhere in our code
 		if (angle < 0)
 			angle += 360;
 
-		printf("%4.2f %4.2f %4.2f\n", v.x, v.y, angle);
+		//printf("%4.2f %4.2f %4.2f\n", v.x, v.y, angle);
 
 		player->rotation = angle;
 	}
@@ -325,22 +365,31 @@ void mouseControlsRoutine()
 	// Y offset moves the player forward/backward
 	float dx = window.mouse.x - window.origin.x;
 	float dy = window.mouse.y - window.origin.y;
+
+	if (dy <= 0)
+		player->movingForward = true;
+	else
+		player->movingForward = false;
 	
 	// Values of non-linear functions chosen from experimentation
-	float rotationOffset = pow(abs(dx), 2.1f) / 100000.0f;
+	//float rotationOffset = pow(abs(dx), 2.1f) / 100000.0f;
+	float rotationOffset = pow(abs(dx), 2.1f) / 200000.0f;
 	if (dx < 0)
 		player->rotation = player->rotation - rotationOffset;
 	else
 		player->rotation = player->rotation + rotationOffset;
 
-	float speed = pow(abs(dy), 1.9f) / 2000.0f;
+	//float speed = pow(abs(dy), 1.9f) / 2000.0f;
+	float speed = pow(abs(dy), 1.9f) / 5000.0f;
 	mat4 velocityMat = mat4();
 	velocityMat = rotate(velocityMat, player->rotation, vec3(0.0f, 0.0f, 1.0f));
 	vec4 velocity = velocityMat*vec4(speed, 0.0f, 0.0f, 1.0f);
 	
 	if (dy < 0)
+		//player->body->ApplyLinearImpulse(b2Vec2(velocity.x, -velocity.y), b2Vec2(0.0f, 0.0f));
 		player->body->SetLinearVelocity(b2Vec2(velocity.x, -velocity.y));
 	else
+		//player->body->ApplyLinearImpulse(b2Vec2(-velocity.x, velocity.y), b2Vec2(0.0f, 0.0f));
 		player->body->SetLinearVelocity(b2Vec2(-velocity.x, velocity.y));
 }
 
@@ -362,7 +411,7 @@ void DisplayInstructions()
 	int y = 10;
 	for (auto i = s->rbegin(); i < s->rend(); ++i)
 	{
-		freetype::print(our_font, 10, y, i->c_str());
+		freetype::print(true, our_font, 10, y, i->c_str());
 		y += 1.2*our_font.h;
 	}
 }
@@ -415,10 +464,8 @@ void DisplayStats()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
-	freetype::print(our_font, window.size.x - (max.length() + 12)*our_font.h, 10, targets.c_str());
-	freetype::print(our_font, window.size.x - 12*our_font.h, 10, time);
-
-
+	freetype::print(true, our_font, window.size.x - (max.length() + 12)*our_font.h, 10, targets.c_str());
+	freetype::print(true, our_font, window.size.x - 12*our_font.h, 10, time);
 }
 
 void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumbos, bool sky)
@@ -428,28 +475,18 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 	//light2.lightPosEyeCoords = glm::vec3(worldModelView * glm::vec4(light2.lightPos,1.0));
 	//light3.lightPosEyeCoords = glm::vec3(worldModelView * glm::vec4(light3.lightPos,1.0));
 
-	b2Vec2 pos = player->body->GetPosition();
+//	b2Vec2 pos = player->body->GetPosition();
 	
 	if(sky)
 		skybox.Draw(projection_matrix, worldModelView, window.size);
 	
-	currShader = &phongShader;
+	//currShader = &phongShader;
+	currShader = &brickShader;
 	for (int i = 0; i < (int)walls.size(); i++)
 	{
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
-		
-	targetTexture.Use();	
-	for (int i = 0; i < (int)moshballs.size(); i++)
-	{
-		targetShader.hit = moshballs[i]->displayTimer;
-		dynamicTarget.hit = moshballs[i]->displayTimer;
-		if(i%2 == 0)
-			currShader = &dynamicTarget;
-		else
-			currShader = &targetShader;
-		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
-	}
+
 	if(self)
 		player->Draw(projection_matrix, worldModelView, window.size);
 
@@ -460,19 +497,80 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 		else
 			fbo.Use(1);
 		currShader = &jumbotronShader;
-		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
-		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
-		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
-		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
 	
-		
-		dynamicColor.color = vec3(.5f, .25f, 0.0f);
-		currShader = &dynamicColor;
-		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, 0.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
-		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
-		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
-		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
-				
+		//jumbo tron posts
+		/*jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		*/
+	}
+
+	targetTexture.Use();
+	currShader = &targetShader;
+	b2Vec2 playerPos = player->body->GetPosition();
+	b2Vec2 ballToPlayerVec;
+	float angle = 0.0f;
+	for (int i = 0; i < (int)moshballs.size(); i++)
+	{
+		targetShader.hit = moshballs[i]->displayTimer;
+		dynamicTarget.hit = moshballs[i]->displayTimer;		
+
+		// Draw direction vector
+		if (window.displayVelocityVecs)
+		{
+			b2Vec2 velocity = moshballs[i]->body->GetLinearVelocity();
+			if (velocity.x != 0 || velocity.y != 0)
+			{
+				b2Vec2 pos =  moshballs[i]->body->GetPosition();
+				mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
+
+				angle = 180.0f/3.14f * atan2(-velocity.y, velocity.x);
+				m = rotate(m, -angle, vec3(0.0f, 0.0f, 1.0f));
+				glLoadMatrixf(value_ptr(m));
+
+				glColor3f(1,1,1);
+				glLineWidth(2.0);
+				glBegin(GL_LINES);
+					glVertex2f(0.0f, 0.0f);
+					glVertex2f(3.0f, 0.0f);
+				glEnd();
+			}
+		}
+
+		// Draw the timer text
+		if(moshballs[i]->displayTimer)
+		{
+			// Offset by the ball's position
+			glMatrixMode(GL_PROJECTION);
+			glLoadMatrixf(glm::value_ptr(projection_matrix));
+			glMatrixMode(GL_MODELVIEW);
+			b2Vec2 pos = moshballs[i]->body->GetPosition();
+			mat4 m = translate(worldModelView, vec3(pos.x - 0.5f, pos.y + 0.5f, 2.0f));
+			m = rotate(m, 90.0f, vec3(1.0f, 0.0f, 0.0f));
+
+			// Rotate to face player
+			b2Vec2 ballPos = moshballs[i]->body->GetPosition();
+			ballToPlayerVec = playerPos - ballPos;
+			angle = 180.0f/3.14f * atan2(ballToPlayerVec.y, ballToPlayerVec.x);
+			m = rotate(m, angle + 90.0f, vec3(0.0f, 1.0f, 0.0f));
+
+			// Make text smaller
+			m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+			glLoadMatrixf(value_ptr(m));
+
+			freetype::print(false, our_font, 0, 0, std::to_string((long double)moshballs[i]->time + 1).c_str());
+		}
+		if(i%2 == 0)
+			currShader = &dynamicTarget;
+		else
+			currShader = &targetShader;
+		targetTexture.Use();
+		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
 	}
 }
 void renderFirstPersonScene()
@@ -526,7 +624,8 @@ void renderThirdPersonScene()
 		
 	//skybox.Draw(projection_matrix, worldModelView, window.size);
 
-	currShader = &phongShader;
+	//currShader = &phongShader;
+	currShader = &brickShader;
 	for (int i = 0; i < (int)walls.size(); i++)
 	{
 		walls[i]->Draw(projection_matrix, worldModelView, window.size);
@@ -536,10 +635,52 @@ void renderThirdPersonScene()
 
 	targetTexture.Use();
 	currShader = &targetShader;
+	float angle = 0.0f;
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
-		targetShader.hit = moshballs[i]->displayTimer;
+		if(i%2 == 0)
+			currShader = &dynamicTarget;
+		else
+			currShader = &targetShader;
+		currShader->hit = moshballs[i]->displayTimer;
 		moshballs[i]->Draw(projection_matrix, worldModelView, window.size);
+
+		// Draw direction vector
+		if (window.displayVelocityVecs)
+		{
+			b2Vec2 velocity = moshballs[i]->body->GetLinearVelocity();
+			if (velocity.x != 0 || velocity.y != 0)
+			{
+				b2Vec2 pos =  moshballs[i]->body->GetPosition();
+				mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
+
+				angle = 180.0f/3.14f * atan2(-velocity.y, velocity.x);
+				m = rotate(m, -angle, vec3(0.0f, 0.0f, 1.0f));
+				glLoadMatrixf(value_ptr(m));
+
+				glColor3f(1,1,1);
+				glLineWidth(1.0);
+				glBegin(GL_LINES);
+					glVertex2f(0.0f, 0.0f);
+					glVertex2f(3.0f, 0.0f);
+				glEnd();
+			}
+		}
+	}
+
+	// Draw player heading vector
+	if (window.displayVelocityVecs)
+	{
+		b2Vec2 pos = player->body->GetPosition();
+		mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
+		m = rotate(m, -(player->rotation), vec3(0.0f, 0.0f, 1.0f));
+		glLoadMatrixf(value_ptr(m));
+		glColor3f(1,1,1);
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+			glVertex2f(0.0f, 0.0f);
+			glVertex2f(3.0f, 0.0f);
+		glEnd();
 	}
 
 	//glutSwapBuffers();
@@ -578,17 +719,43 @@ void renderBox2dDebugScene()
 
 	world.DrawDebugData();
 
-	// Draw player heading vector
-	b2Vec2 pos = player->body->GetPosition();
-	mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
-	m = rotate(m, -(player->rotation), vec3(0.0f, 0.0f, 1.0f));
-	glLoadMatrixf(value_ptr(m));
-	glColor3f(1,1,1);
-	glLineWidth(1.0);
-	glBegin(GL_LINES);
-		glVertex2f(0.0f, 0.0f);
-		glVertex2f(3.0f, 0.0f);
-	glEnd();
+	// Draw direction vector
+	if (window.displayVelocityVecs)
+	{
+		float angle = 0.0f;
+		for (int i = 0; i < (int)moshballs.size(); i++)
+		{
+			b2Vec2 velocity = moshballs[i]->body->GetLinearVelocity();
+			if (velocity.x != 0 || velocity.y != 0)
+			{
+				b2Vec2 pos =  moshballs[i]->body->GetPosition();
+				mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
+
+				angle = 180.0f/3.14f * atan2(-velocity.y, velocity.x);
+				m = rotate(m, -angle, vec3(0.0f, 0.0f, 1.0f));
+				glLoadMatrixf(value_ptr(m));
+
+				glColor3f(1,1,1);
+				glLineWidth(1.0);
+				glBegin(GL_LINES);
+					glVertex2f(0.0f, 0.0f);
+					glVertex2f(3.0f, 0.0f);
+				glEnd();
+			}
+		}
+
+		// Draw player heading vector
+		b2Vec2 pos = player->body->GetPosition();
+		mat4 m = translate(worldModelView, vec3(pos.x, pos.y, 0.0f));
+		m = rotate(m, -(player->rotation), vec3(0.0f, 0.0f, 1.0f));
+		glLoadMatrixf(value_ptr(m));
+		glColor3f(1,1,1);
+		glLineWidth(1.0);
+		glBegin(GL_LINES);
+			glVertex2f(0.0f, 0.0f);
+			glVertex2f(3.0f, 0.0f);
+		glEnd();
+	}
 
 	//glutSwapBuffers();
 }
@@ -599,18 +766,28 @@ void DisplayFunc()
 	if (window.window_handle == -1)
 		return;
 
-	currentTime = float(glutGet(GLUT_ELAPSED_TIME)) / 1000.0f;
-
 	if (!paused)
-	{
 		mouseControlsRoutine();
 
-		// Instruct the world to perform a single step of simulation.
-		// It is generally best to keep the time step and iterations fixed.
-		world.Step(timeStep, velocityIterations, positionIterations);
-		//player->body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+	loops = 0;
+	// Update game state at a constant rate and update frames as fast as possible
+	while (float(glutGet(GLUT_ELAPSED_TIME)) > next_game_tick && loops < MAX_FRAMESKIP)
+	{
+		if (!paused)
+		{
+			mouseControlsRoutine();
+
+			// Instruct the world to perform a single step of simulation.
+			// It is generally best to keep the time step and iterations fixed.
+			world.Step(timeStep, velocityIterations, positionIterations);
+			world.ClearForces();
+		}
+
+		next_game_tick += SKIP_TICKS;
+		loops ++;
 	}
 	
+	currentTime = float(glutGet(GLUT_ELAPSED_TIME)) / 1000.0f;
 	
 	// Determine which scene to render on the screen
 	RenderFunction render;
@@ -664,17 +841,7 @@ void DisplayFunc()
 	solidShader.hit = 0;
 	player->Draw(projection_matrix, worldModelView, window.size);
 
-
-	glutSwapBuffers();
 	
-	if(targetsRemaining == 0)
-		glutLeaveMainLoop();
-
-}
-
-// This is used to control the frame rate (60Hz).
-static void Timer(int)
-{
 	if (!paused)
 	{
 		float currTimeMinusPauses = currentTime - totalTimePaused;
@@ -684,10 +851,14 @@ static void Timer(int)
 			moshballs[i]->CheckTimer(currTimeMinusPauses);
 		}
 	}
-
-	//glutSetWindow(mainWindow);
+	
+	//recorder->RecordImage();
+	glutSwapBuffers();
 	glutPostRedisplay();
-	glutTimerFunc(framePeriod, Timer, 0);
+	
+	if(targetsRemaining == 0)
+		glutLeaveMainLoop();
+
 }
 int error()
 {
@@ -695,6 +866,7 @@ int error()
 	scanf("%c", &c);
 	return 0;
 }
+
 int main(int argc, char * argv[])
 {
 	if(argc > 1)
@@ -702,11 +874,12 @@ int main(int argc, char * argv[])
 	if(argc > 2)
 		seed = atoi(argv[2]);
 
-	countDownTimerSeconds = 15.0f;
+	countDownTimerSeconds = 30.0f + numBalls * 2.0f;
 
 	glutInit(&argc, argv);
 	//glutInitWindowSize(1024, 1024);
-	glutInitWindowSize(800, 600);
+	//glutInitWindowSize(800, 600);
+	glutInitWindowSize(1200, 950);
 	glutInitWindowPosition(20, 20);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 
@@ -724,7 +897,10 @@ int main(int argc, char * argv[])
 		cerr << "GLEW failed to initialize." << endl;
 		return error();
 	}
-	
+
+
+	if(!brickShader.Initialize("brick_shader.vert", "brick_shader.frag"))
+		return error();
 	if(!dynamicColor.Initialize("DynamicColor.vert", "DynamicColor.frag"))
 		return error();
 	if(!solidShader.Initialize("solid_shader.vert", "solid_shader.frag"))
@@ -844,12 +1020,17 @@ int main(int argc, char * argv[])
 	}
 
 	// Use a timer to control the frame rate.
-	glutTimerFunc(framePeriod, Timer, 0);
+	//glutTimerFunc(framePeriod, Timer, 0);
 
 	BuildFont();										// Build The Font
 	our_font.init("test.TTF", 16);					    //Build the freetype font
 	//our_font.init("/usr/share/fonts/truetype/arial.ttf", 16);
-	
+
+
+	// Start the ambient music
+	//PlaySound(TEXT("./media/Hypnotic Ambiance.wav"),NULL,SND_FILENAME|SND_ASYNC|SND_LOOP);
+
+
 	glutMainLoop();
 
 	printf("Game contained %i targets.\n", numBalls);
@@ -861,7 +1042,6 @@ int main(int argc, char * argv[])
 	printf("Hit enter to exit:");
 	char c;
 	scanf("%c", &c);
-
 
 	return 0;
 }

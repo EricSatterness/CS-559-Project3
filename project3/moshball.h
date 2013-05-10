@@ -18,7 +18,8 @@ public:
 	bool displayTimer;
 	//float rotation;
 	float rotX, rotY;
-	glm::mat4 rotMat;
+	//glm::mat4 rotMat;
+	glm::fquat rotQuat;
 
 	Moshball();
 	bool Initialize(glm::vec3 center, float radius, int slices, int stacks);

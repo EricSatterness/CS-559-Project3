@@ -31,8 +31,8 @@ bool Player::Initialize(float radius, int slices, int stacks)
 
 	b2FixtureDef playerFixture;
 	playerFixture.shape = &playerShape;
-	playerFixture.density = 1.0f;
-	playerFixture.friction = 0.0f;
+	playerFixture.density = 0.1f;
+	playerFixture.friction = 0.3f;
 	playerFixture.restitution = 1.0f;
 	this->body->CreateFixture(&playerFixture);
 
@@ -54,8 +54,19 @@ void Player::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm::
 
 void Player::StartContact()
 {
-	this->hitVelocity = this->body->GetLinearVelocity();
+	//this->hitVelocity = this->body->GetLinearVelocity();
 	this->hit = true;
+	b2Vec2 v = this->body->GetLinearVelocity();
+
+	////float tan = atan2(-v.y, v.x);
+	//float angle = 180.0f/3.14f * atan2(-v.y, v.x);
+	////float tan = atan2(player->hitVelocity.y, -player->hitVelocity.x);
+	////angle = 180.0f/3.14f * tan;
+	//if (angle < 0)
+	//	angle += 360;
+
+	//printf("%4.2f %4.2f %4.2f\n", v.x, v.y, angle);
+	//this->rotation = angle;
 }
 
 void Player::TakeDown()

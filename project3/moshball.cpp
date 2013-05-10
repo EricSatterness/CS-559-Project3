@@ -13,7 +13,7 @@ Moshball::Moshball()
 	//this->rotation = 0.0f;
 	this->rotX = 0.0f;
 	this->rotY = 0.0f;
-	this->rotMat = mat4(1.0f);
+	//this->rotMat = mat4(1.0f);
 
 	time = 0;
 	// Don't use a timer or threading. We already have a timer: the display method
@@ -40,8 +40,8 @@ bool Moshball::Initialize(vec3 center, float radius, int slices, int stacks)
 
 	b2FixtureDef ballFixture;
 	ballFixture.shape = &ballShape;
-	ballFixture.density = 1.0f;
-	ballFixture.friction = 0.0f;
+	ballFixture.density = 0.1f;
+	ballFixture.friction = 0.3f;
 	ballFixture.restitution = 1.0f;
 	this->body->CreateFixture(&ballFixture);
 	this->body->SetLinearDamping(0.25f);
@@ -61,46 +61,59 @@ void Moshball::Draw(const glm::mat4 & projection, glm::mat4 modelview, const glm
 	b2Vec2 position = this->body->GetPosition();
 	mat4 m = translate(modelview, vec3(position.x, position.y, 0.0f));
 
-	// Make sphere roll. velocity = radius * angular_velocity
-	b2Vec2 velocityB2 = this->body->GetLinearVelocity();
-	if (velocityB2.x != 0.0f || velocityB2.y != 0.0f)
+	if (!paused)
 	{
-		// This only handles one direction of rotation. If the velocity changes directions, we get a jumping motion in the texture
-		vec3 velocity(velocityB2.x, velocityB2.y, 0.0f);
-		vec3 rotationAxis = normalize(cross(vec3(0.0f, 0.0f, 1.0f), normalize(velocity)));
-		float speed = sqrtf(pow(velocity.x, 2.0f) + pow(velocity.y, 2.0f));
-		float rotation = speed / (this->radius *2* 3.141592654f);
-		/*this->rotation += rotation;
-		if (this->rotation > 360)
-			this->rotation -= 360;
-		else if (this->rotation < 0)
-			this->rotation += 360;
+		// Make sphere roll
+		b2Vec2 velocityB2 = this->body->GetLinearVelocity();
+		if (velocityB2.x != 0.0f || velocityB2.y != 0.0f)
+		{
+			// This only handles one direction of rotation. If the velocity changes directions, we get a jumping motion in the texture
+			vec3 velocity(velocityB2.x, velocityB2.y, 0.0f);
+			vec3 rotationAxis = normalize(cross(vec3(0.0f, 0.0f, 1.0f), normalize(velocity)));
+			float speed = sqrtf(pow(velocity.x, 2.0f) + pow(velocity.y, 2.0f));
+			float rotation = speed / (this->radius *2* 3.141592654f);
+			/*this->rotation += rotation;
+			if (this->rotation > 360)
+				this->rotation -= 360;
+			else if (this->rotation < 0)
+				this->rotation += 360;
 
-		m = rotate(m, this->rotation, rotationAxis);*/
+			m = rotate(m, this->rotation, rotationAxis);*/
 
-		float newRotX = velocityB2.x / (this->radius * 3.0f);
-		float newRotY = velocityB2.y / (this->radius * 3.0f);
-		/*this->rotX += newRotX;
-		this->rotY += newRotY;
+			//float newRotX = velocityB2.x / (this->radius * 3.0f);
+			//float newRotY = velocityB2.y / (this->radius * 3.0f);
+			/*this->rotX += newRotX;
+			this->rotY += newRotY;
 
-		if (this->rotX > 360)
-			this->rotX -= 360;
-		else if (this->rotX < 0)
-			this->rotX += 360;
-		if (this->rotY > 360)
-			this->rotY -= 360;
-		else if (this->rotY < 0)
-			this->rotY += 360;
+			if (this->rotX > 360)
+				this->rotX -= 360;
+			else if (this->rotX < 0)
+				this->rotX += 360;
+			if (this->rotY > 360)
+				this->rotY -= 360;
+			else if (this->rotY < 0)
+				this->rotY += 360;
 
-		m = rotate(m, this->rotX, vec3(0.0f, 1.0f, 0.0f));
-		m = rotate(m, this->rotY, vec3(-1.0f, 0.0f, 0.0f));*/
+			m = rotate(m, this->rotX, vec3(0.0f, 1.0f, 0.0f));
+			m = rotate(m, this->rotY, vec3(-1.0f, 0.0f, 0.0f));*/
 
-		//this->rotMat = rotate(this->rotMat, newRotX, vec3(0.0f, 1.0f, 0.0f));
-		//this->rotMat = rotate(this->rotMat, newRotY, vec3(-1.0f, 0.0f, 0.0f));
-		this->rotMat = rotate(this->rotMat, rotation, rotationAxis);
+			//this->rotMat = rotate(this->rotMat, newRotX, vec3(0.0f, 1.0f, 0.0f));
+			//this->rotMat = rotate(this->rotMat, newRotY, vec3(-1.0f, 0.0f, 0.0f));
+
+
+			//this->rotMat = rotate(this->rotMat, rotation, rotationAxis);
+			
+			rotation = radians(rotation);
+			rotationAxis = rotationAxis * sinf(rotation / 2.0f);
+			float scalar = cosf(rotation / 2.0f);
+
+			this->rotQuat = fquat(scalar, rotationAxis) * this->rotQuat;
+			this->rotQuat = normalize(this->rotQuat);
+		}
 	}
 
-	m = m * this->rotMat;
+	//m = m * this->rotMat;
+	m = m * mat4_cast(this->rotQuat);
 
 	this->sphere->Draw(projection, m, size);
 }
