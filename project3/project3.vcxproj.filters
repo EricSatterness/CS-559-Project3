@@ -82,5 +82,7 @@
     <None Include="TargetShader.vert" />
     <None Include="DynamicSphere.frag" />
     <None Include="DynamicSphere.vert" />
+    <None Include="DynamicColor.frag" />
+    <None Include="DynamicColor.vert" />
   </ItemGroup>
 </Project>

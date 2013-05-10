@@ -44,6 +44,9 @@ public:
 	GLuint tex_handle;
 	GLuint tex_handle2;
 	GLuint hit_handle;
+	GLuint color_handle;
+
+	glm::vec3 color;
 
 	glm::vec4 Material_ADSS;
 	int seeThrough;

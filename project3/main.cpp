@@ -32,7 +32,7 @@ float zoom = 0.05f;
 ImageTexture targetTexture, targetNormals;
 Skybox skybox;
 FrameBufferObject fbo;
-Shader phongShader, targetShader, jumbotronShader, dynamicTarget, solidShader;
+Shader phongShader, targetShader, jumbotronShader, dynamicTarget, solidShader, dynamicColor;
 Cube *jumbotronCube;
 
 #pragma region Data Structs
@@ -160,6 +160,7 @@ void CloseFunc()
 	KillFont();
 	our_font.clean();
 
+	dynamicColor.TakeDown();
 	solidShader.TakeDown();
 	dynamicTarget.TakeDown();
 	phongShader.TakeDown();
@@ -309,7 +310,7 @@ void mouseControlsRoutine()
 	{
 		player->hit = false;
 		//float tan = atan2(-v.y, v.x);
-		angle = (180.0f/3.14f) * atan2(-v.y, v.x);
+		angle = (180.0f/3.141592654f) * atan2(-v.y, v.x);
 		//float tan = atan2(player->hitVelocity.y, -player->hitVelocity.x);
 		//angle = 180.0f/3.14f * tan;
 		if (angle < 0)
@@ -442,26 +443,8 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 	for (int i = 0; i < (int)moshballs.size(); i++)
 	{
 		targetShader.hit = moshballs[i]->displayTimer;
-		//if(moshballs[i]->displayTimer)
-		//{			
-		//	glMatrixMode(GL_MODELVIEW);
-		//	glLoadMatrixf(glm::value_ptr(worldModelView));
-		//	//glLoadIdentity();
-		//	b2Vec2 pos = moshballs[i]->body->GetPosition();
-		//	vec4 newPos = vec4(pos.x, pos.y, 2.0f, 1.0f);
-		//	//newPos = (projection_matrix * worldModelView)*newPos;
-		//	//string s = std::to_string((long double)moshballs[i]->time);
-		//	//glCallLists(s.length(), GL_UNSIGNED_BYTE, s.c_str());
-		//	glPushMatrix();
-		//	//glLoadIdentity();
-		//	glTranslatef(newPos.x, newPos.y, newPos.z);
-		//	glScaled(0.1, 0.1, 1.0);
-		//	glutStrokeString(GLUT_STROKE_MONO_ROMAN, (const unsigned char *)std::to_string((long double)moshballs[i]->time).c_str());
-		//	freetype::print(our_font, window.size.x/2, window.size.y/2, std::to_string((long double)moshballs[i]->time).c_str());
-		//	glPopMatrix();
-		//}
-		//targetTexture.Use();
-		if(i == 0)
+		dynamicTarget.hit = moshballs[i]->displayTimer;
+		if(i%2 == 0)
 			currShader = &dynamicTarget;
 		else
 			currShader = &targetShader;
@@ -477,10 +460,19 @@ void drawScene(mat4 projection_matrix, mat4 worldModelView, bool self, bool jumb
 		else
 			fbo.Use(1);
 		currShader = &jumbotronShader;
-		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
-		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, 14.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(worldModelView, vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
+		jumbotronCube->Draw(projection_matrix, scale(translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 7.0f)), vec3(.5f, window.window_aspect*7.0f, 7.0f)), window.size);
+	
+		
+		dynamicColor.color = vec3(.5f, .25f, 0.0f);
+		currShader = &dynamicColor;
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, 0.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, 90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, -90.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
+		jumbotronCube->Draw(projection_matrix, glm::scale(glm::translate(rotate(worldModelView, 180.0f, vec3(0.0f, 0.0f, 1.0f)), vec3(-(arena_width / 2.0f), 0.0f, 1.75f)), vec3(.5f, .5f, 3.5f)), window.size);
+				
 	}
 }
 void renderFirstPersonScene()
@@ -733,6 +725,8 @@ int main(int argc, char * argv[])
 		return error();
 	}
 	
+	if(!dynamicColor.Initialize("DynamicColor.vert", "DynamicColor.frag"))
+		return error();
 	if(!solidShader.Initialize("solid_shader.vert", "solid_shader.frag"))
 		return error();
 	if(!dynamicTarget.Initialize("DynamicSphere.vert", "DynamicSphere.frag"))

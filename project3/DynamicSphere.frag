@@ -65,12 +65,15 @@ vec4 ads(vec3 light_position, vec3 L_ADS, uint on, vec3 Ka, vec3 Kd, vec3 Ks, in
 
 	int tmp = int(float(time)/5000);
 	float t = float(int(time) - 5000*tmp)/5000;
-	vec4 useColor = vec4(0.0f, 1.0, t, 1.0f);
-	//useColor = vec4(d, 1.0f);
+	t*= 2;
+	float c = t + coord.y;
+	if(c > 2)
+		c = c - 2;
+	else if(c > 1)
+		c  = 2 - c;
+	vec4 useColor = vec4(0.0f, 1.0, .5 + .5*sin(2*4*3.141592654*(c-.5)), 1.0f);
 	if(hit==1)
 		useColor.x = .75;
-	//float pi = 3.141592654;
-	//useColor = vec4(theta/pi, 0.0f, 0.0f, 1.0f);
 	return useColor*vec4(ambient + diffuse + spec, 1.0f); 
 }
 vec3 calc(float phi, float theta)

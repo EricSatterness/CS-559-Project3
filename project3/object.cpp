@@ -108,7 +108,8 @@ void Object::Draw(const mat4 & projection, mat4 modelview, const ivec2 & size)
 	mat3 nm = inverse(transpose(mat3(modelview)));
 
 	currShader->Use();
-	currShader->CommonSetup(glutGet(GLUT_ELAPSED_TIME), value_ptr(size), value_ptr(projection), value_ptr(modelview), value_ptr(mvp), value_ptr(nm));
+	float time = 1000*((paused ? timeLastPauseBegan : currentTime) - totalTimePaused);
+	currShader->CommonSetup(time, value_ptr(size), value_ptr(projection), value_ptr(modelview), value_ptr(mvp), value_ptr(nm));
 	
 	glBindVertexArray(this->vertex_array_handle);
 	glDrawElements(GL_TRIANGLES , this->vertex_indices.size(), GL_UNSIGNED_INT , &this->vertex_indices[0]);
@@ -118,7 +119,7 @@ void Object::Draw(const mat4 & projection, mat4 modelview, const ivec2 & size)
 	if (this->draw_normals)
 	{
 		solid_color.Use();
-		solid_color.CommonSetup(glutGet(GLUT_ELAPSED_TIME), value_ptr(size), value_ptr(projection), value_ptr(modelview), value_ptr(mvp), value_ptr(nm));
+		solid_color.CommonSetup(time, value_ptr(size), value_ptr(projection), value_ptr(modelview), value_ptr(mvp), value_ptr(nm));
 		glBindVertexArray(this->normal_array_handle);
 		glDrawElements(GL_LINES , this->normal_indices.size(), GL_UNSIGNED_INT , &this->normal_indices[0]);
 		glBindVertexArray(0);

@@ -40,6 +40,7 @@ Shader::Shader()
 	this->tex_handle = BAD_GL_VALUE;
 	this->tex_handle2 = BAD_GL_VALUE;
 	this->time_handle = BAD_GL_VALUE;
+	this->color_handle = BAD_GL_VALUE;
 
 	this->hit = 0;
 	this->seeThrough = 0;
@@ -73,6 +74,8 @@ void Shader::CommonSetup(const float time, const GLint * size, const GLfloat * p
 	glUniform1i(this->tex_handle, 0);
 	glUniform1i(this->tex_handle2, 1);
 	glUniform1i(this->hit_handle, hit);
+
+	glUniform3fv(this->color_handle, 1, glm::value_ptr(this->color));
 }
 
 void Shader::Use()
@@ -147,6 +150,8 @@ bool Shader::Initialize(char * vertex_shader_file, char * fragment_shader_file)
 	this->tex_handle = glGetUniformLocation(this->program_id, (const GLchar *) "Tex1");
 	this->tex_handle2 = glGetUniformLocation(this->program_id, (const GLchar *) "Tex2");
 	this->hit_handle = glGetUniformLocation(this->program_id, (const GLchar *) "hit");
+
+	this->color_handle = glGetUniformLocation(this->program_id, (const GLchar *) "color");
 
 	glUseProgram(0);
 

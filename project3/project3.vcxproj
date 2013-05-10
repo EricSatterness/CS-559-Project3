@@ -141,6 +141,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Debug\project3.exe" />
+    <None Include="DynamicColor.frag" />
+    <None Include="DynamicColor.vert" />
     <None Include="DynamicSphere.frag" />
     <None Include="DynamicSphere.vert" />
     <None Include="earth.jpg" />
